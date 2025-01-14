@@ -54,7 +54,6 @@
               class="input input-bordered"
               :class="{ 'border-red-500': errorFields.email }"
             />
-            
           </div>
           <div class="modal-action">
             <button type="button" class="btn" @click="closeModal">Batal</button>
@@ -88,7 +87,7 @@ onMounted(() => {
         return {
           id: key,
           name: user.name || 'Tanpa Nama',
-          password: user.email || 'Tidak Diketahui',
+          password: user.password || 'Tidak Diketahui',
         }
       })
       noData.value = false
@@ -102,13 +101,13 @@ onMounted(() => {
 const showModal = ref(false)
 const newUser = ref({
   name: '',
-  email: '',
+  password: '',
 })
 
 //ini tempat untuk check inputan pengguna
 const errorFields = ref({
   name: false,
-  email: false,
+  password: false,
 })
 
 // Fungsi ketika modal di tutup
@@ -123,11 +122,11 @@ const resetForm = () => {
   idUserEdit.value = null
   newUser.value = {
     name: '',
-    email: '',
+    password: '',
   }
   errorFields.value = {
     name: false,
-    email: false,
+    password: false,
   }
 }
 
@@ -136,15 +135,15 @@ const validateUser = () => {
   let hasError = false
   errorFields.value = {
     name: false,
-    email: false,
+    password: false,
   }
 
   if (!newUser.value.name.trim()) {
     errorFields.value.name = true
     hasError = true
   }
-  if (!newUser.value.email.trim()) {
-    errorFields.value.email = true
+  if (!newUser.value.password.trim()) {
+    errorFields.value.password = true
     hasError = true
   }
   return hasError
@@ -158,7 +157,7 @@ const saveUser = () => {
     return
   }
 
-  const sanitizedEmail = newUser.value.email.trim().replace(/[.#$/[\]]/g, '')
+  const sanitizedEmail = newUser.value.password.trim().replace(/[.#$/[\]]/g, '')
   if (!sanitizedEmail) {
     alert('Email user tidak boleh kosong atau tidak valid.')
     return
