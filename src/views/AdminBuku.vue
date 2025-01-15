@@ -24,7 +24,7 @@
           <td>{{ book.author }}</td>
           <td>{{ book.releaseYear }}</td>
           <td>{{ book.category }}</td>
-          <td>{{ book.stock}}</td>
+          <td>{{ book.stock }}</td>
           <td>{{ book.available ? 'Tersedia' : 'Tidak Tersedia' }}</td>
           <td>
             <button @click="editBuku(book)" class="btn btn-primary btn-sm">Edit</button>
@@ -48,7 +48,7 @@
               type="text"
               placeholder="Judul Buku"
               class="input input-bordered"
-              :class="{'border-red-500': errorFields.title}"
+              :class="{ 'border-red-500': errorFields.title }"
             />
           </div>
           <div class="form-control mb-4">
@@ -60,7 +60,7 @@
               type="text"
               placeholder="Nama Penulis"
               class="input input-bordered"
-              :class="{'border-red-500': errorFields.author}"
+              :class="{ 'border-red-500': errorFields.author }"
             />
           </div>
           <div class="form-control mb-4">
@@ -72,7 +72,7 @@
               type="number"
               placeholder="Tahun Rilis"
               class="input input-bordered"
-              :class="{'border-red-500': errorFields.releaseYear}"
+              :class="{ 'border-red-500': errorFields.releaseYear }"
             />
           </div>
           <div class="form-control mb-4">
@@ -84,7 +84,7 @@
               type="text"
               placeholder="Kategori Buku"
               class="input input-bordered"
-              :class="{'border-red-500': errorFields.category}"
+              :class="{ 'border-red-500': errorFields.category }"
             />
           </div>
           <div class="form-control mb-4">
@@ -96,7 +96,7 @@
               type="number"
               placeholder="Jumlah Stock"
               class="input input-bordered"
-              :class="{'border-red-500': errorFields.stock}"
+              :class="{ 'border-red-500': errorFields.stock }"
             />
           </div>
           <div class="form-control mb-4">
@@ -112,6 +112,13 @@
         </form>
       </div>
     </div>
+
+    <KonfirmasiPopup
+      :isVisible="showConfirmModal"
+      :message="confirmMessage"
+      @confirm="executeConfirmAction"
+      @cancel="closeConfirmModal"
+    />
   </div>
 </template>
 
@@ -168,7 +175,7 @@ const errorFields = ref({
   author: false,
   releaseYear: false,
   category: false,
-  stock: false
+  stock: false,
 })
 
 // Fungsi ketika modal di tutup
@@ -194,7 +201,7 @@ const resetForm = () => {
     author: false,
     releaseYear: false,
     category: false,
-    stock: false
+    stock: false,
   }
 }
 
@@ -206,7 +213,7 @@ const validateBook = () => {
     author: false,
     releaseYear: false,
     category: false,
-    stock: false
+    stock: false,
   }
 
   if (!newBook.value.title.trim()) {
@@ -258,7 +265,7 @@ const saveBook = () => {
     })
 }
 
-// Fungsi untuk mengedit buku
+//fungsi sebelum buku di edit/update
 const editBuku = (idbuku) => {
   editKah.value = true
   idBukuEdit.value = idbuku.id
@@ -274,7 +281,13 @@ const updateBuku = () => {
     return
   }
 
-  if (!idBukuEdit.value) return
+  // Jika ID buku tidak ditemukan
+  if (!idBukuEdit.value) {
+    alert('ID buku tidak ditemukan')
+    return
+  }
+
+  // Jika ID buku ditemukan
   const bookref = dbRef(database, `buku/${idBukuEdit.value}`)
   update(bookref, newBook.value)
     .then(() => {
@@ -289,14 +302,41 @@ const updateBuku = () => {
 
 // Fungsi untuk menghapus buku
 const deleteBook = (bookId) => {
-  const bookRef = dbRef(database, `buku/${bookId}`)
-  remove(bookRef)
-    .then(() => {
-      console.log('Buku berhasil dihapus')
-      books.value = books.value.filter((book) => book.id !== bookId)
-    })
-    .catch((error) => {
-      console.error('Gagal menghapus buku:', error)
-    })
+  openConfirmModal('Apakah Anda yakin ingin menghapus buku ini?', () => {
+    removeBook(bookId)
+  })
+  const removeBook = (bookId) => {
+    const bookRef = dbRef(database, `buku/${bookId}`)
+    remove(bookRef)
+      .then(() => {
+        console.log('Buku berhasil dihapus')
+        books.value = books.value.filter((book) => book.id !== bookId)
+      })
+      .catch((error) => {
+        console.error('Gagal menghapus buku:', error)
+      })
+  }
+}
+const showConfirmModal = ref(false) // Untuk menampilkan modal konfirmasi
+const confirmMessage = ref('') // Pesan konfirmasi
+const confirmAction = ref(null) // Aksi yang akan dijalankan setelah konfirmasi
+
+const openConfirmModal = (message, action) => {
+  confirmMessage.value = message
+  confirmAction.value = action
+  showConfirmModal.value = true
+}
+
+const closeConfirmModal = () => {
+  showConfirmModal.value = false
+  confirmMessage.value = ''
+  confirmAction.value = null
+}
+
+const executeConfirmAction = () => {
+  if (typeof confirmAction.value === 'function') {
+    confirmAction.value() // Jalankan aksi
+  }
+  closeConfirmModal()
 }
 </script>

@@ -1,4 +1,3 @@
-import AddBuku from '@/components/logikaAdmin/buku/AddBuku.vue'
 import AdminBuku from '@/views/AdminBuku.vue'
 import AdminDashboard from '@/views/AdminDashboard.vue'
 import AdminPage from '@/views/AdminPage.vue'
@@ -17,7 +16,6 @@ const routes = [
         path: 'buku',
         name: 'buku',
         component: AdminBuku,
-        children: [{ path: 'tambah', name: 'tambah', component: AddBuku }],
       },
       { path: 'user', name: 'user0', component: AdminUser },
     ],
