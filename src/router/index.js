@@ -2,10 +2,15 @@ import AdminBuku from '@/views/AdminBuku.vue'
 import AdminDashboard from '@/views/AdminDashboard.vue'
 import AdminPage from '@/views/AdminPage.vue'
 import AdminUser from '@/views/AdminUser.vue'
+import RegisterAndLogin from '@/views/RegisterAndLogin.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  { path: '/', redirect: '/admin' },
+  { path: '/', redirect: '/masuk' },
+  {
+    path: '/masuk',
+    component: RegisterAndLogin,
+  },
   {
     path: '/admin',
     component: AdminPage,

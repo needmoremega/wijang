@@ -99,12 +99,12 @@
               :class="{ 'border-red-500': errorFields.stock }"
             />
           </div>
-          <div class="form-control mb-4">
+          <!-- <div class="form-control mb-4">
             <label class="label cursor-pointer">
               <span class="label-text">Tersedia</span>
               <input v-model="newBook.available" type="checkbox" class="toggle toggle-success" />
             </label>
-          </div>
+          </div> -->
           <div class="modal-action">
             <button type="button" class="btn" @click="closeModal">Batal</button>
             <button type="submit" class="btn btn-primary">Simpan</button>
@@ -252,17 +252,19 @@ const saveBook = () => {
     alert('Judul buku tidak boleh kosong atau tidak valid.')
     return
   }
-
-  const newBookRef = dbRef(database, `buku/${sanitizedTitle}`)
-  set(newBookRef, newBook.value)
-    .then(() => {
-      closeModal()
-      console.log('Buku berhasil ditambahkan')
-    })
-    .catch((error) => {
-      alert(`Gagal menambahkan buku: ${error.message}`)
-      console.error(error)
-    })
+  openConfirmModal('Apakah Anda yakin ingin menambahkan buku ini?', () => {
+    newBook.value.available = newBook.value.stock > 0
+    const newBookRef = dbRef(database, `buku/${sanitizedTitle}`)
+    set(newBookRef, newBook.value)
+      .then(() => {
+        closeModal()
+        console.log('Buku berhasil ditambahkan')
+      })
+      .catch((error) => {
+        alert(`Gagal menambahkan buku: ${error.message}`)
+        console.error(error)
+      })
+  })
 }
 
 //fungsi sebelum buku di edit/update
@@ -286,18 +288,21 @@ const updateBuku = () => {
     alert('ID buku tidak ditemukan')
     return
   }
+  openConfirmModal('Apakah Anda yakin ingin memperbarui buku ini?', () => {
+    newBook.value.available = newBook.value.stock > 0
 
-  // Jika ID buku ditemukan
-  const bookref = dbRef(database, `buku/${idBukuEdit.value}`)
-  update(bookref, newBook.value)
-    .then(() => {
-      closeModal()
-      console.log('Buku berhasil diperbarui')
-    })
-    .catch((error) => {
-      alert(`Gagal memperbarui buku: ${error.message}`)
-      console.error(error)
-    })
+    // Jika ID buku ditemukan
+    const bookref = dbRef(database, `buku/${idBukuEdit.value}`)
+    update(bookref, newBook.value)
+      .then(() => {
+        closeModal()
+        console.log('Buku berhasil diperbarui')
+      })
+      .catch((error) => {
+        alert(`Gagal memperbarui buku: ${error.message}`)
+        console.error(error)
+      })
+  })
 }
 
 // Fungsi untuk menghapus buku

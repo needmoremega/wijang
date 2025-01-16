@@ -62,6 +62,12 @@
         </form>
       </div>
     </div>
+    <KonfirmasiPopup
+      :isVisible="showConfirmModal"
+      :message="confirmMessage"
+      @confirm="executeConfirmAction"
+      @cancel="closeConfirmModal"
+    />
   </div>
 </template>
 
@@ -163,16 +169,18 @@ const saveUser = () => {
     return
   }
 
-  const newUserRef = dbRef(database, `user/${sanitizedEmail}`)
-  set(newUserRef, newUser.value)
-    .then(() => {
-      closeModal()
-      console.log('User berhasil ditambahkan')
-    })
-    .catch((error) => {
-      alert(`Gagal menambahkan user: ${error.message}`)
-      console.error(error)
-    })
+  openConfirmModal('Apakah Anda yakin ingin menambahkan user ini?', () => {
+    const newUserRef = dbRef(database, `user/${sanitizedEmail}`)
+    set(newUserRef, newUser.value)
+      .then(() => {
+        closeModal()
+        console.log('User berhasil ditambahkan')
+      })
+      .catch((error) => {
+        alert(`Gagal menambahkan user: ${error.message}`)
+        console.error(error)  
+      })
+  })
 }
 
 // Fungsi untuk mengedit user
@@ -192,16 +200,18 @@ const updateUser = () => {
   }
 
   if (!idUserEdit.value) return
-  const userRef = dbRef(database, `user/${idUserEdit.value}`)
-  update(userRef, newUser.value)
-    .then(() => {
-      closeModal()
-      console.log('User berhasil diperbarui')
-    })
-    .catch((error) => {
-      alert(`Gagal memperbarui user: ${error.message}`)
-      console.error(error)
-    })
+  openConfirmModal('Apakah Anda yakin ingin memperbarui user ini?', () => {
+    const userRef = dbRef(database, `user/${idUserEdit.value}`)
+    update(userRef, newUser.value)
+      .then(() => {
+        closeModal()
+        console.log('User berhasil diperbarui')
+      })
+      .catch((error) => {
+        alert(`Gagal memperbarui user: ${error.message}`)
+        console.error(error)
+      })
+  })
 }
 
 // Fungsi untuk menghapus user
@@ -215,5 +225,29 @@ const deleteUser = (userId) => {
     .catch((error) => {
       console.error('Gagal menghapus user:', error)
     })
+}
+
+// bagian untuk Mengurus popup konfirmasi
+const showConfirmModal = ref(false) // Untuk menampilkan modal konfirmasi
+const confirmMessage = ref('') // Pesan konfirmasi
+const confirmAction = ref(null) // Aksi yang akan dijalankan setelah konfirmasi
+
+const openConfirmModal = (message, action) => {
+  confirmMessage.value = message
+  confirmAction.value = action
+  showConfirmModal.value = true
+}
+
+const closeConfirmModal = () => {
+  showConfirmModal.value = false
+  confirmMessage.value = ''
+  confirmAction.value = null
+}
+
+const executeConfirmAction = () => {
+  if (typeof confirmAction.value === 'function') {
+    confirmAction.value() // Jalankan aksi
+  }
+  closeConfirmModal()
 }
 </script>
