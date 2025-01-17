@@ -1,6 +1,6 @@
 # wijang
 
-This is library website. I code this for my last Project in high school.Please comment  if you already use it.
+This is library website. I code this for my last Project in high school.If you found any bug in this application please create an issue.
 
 ## Project Setup
 
