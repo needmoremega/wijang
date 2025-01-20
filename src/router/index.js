@@ -1,28 +1,23 @@
-import AdminBuku from '@/views/AdminBuku.vue'
-import AdminDashboard from '@/views/AdminDashboard.vue'
-import AdminPage from '@/views/AdminPage.vue'
-import AdminUser from '@/views/AdminUser.vue'
-import RegisterAndLogin from '@/views/RegisterAndLogin.vue'
+import AdminBuku from '@/views/AdminView/AdminBuku.vue'
+import AdminDashboard from '@/views/AdminView/AdminDashboard.vue'
+import AdminPage from '@/views/AdminView/AdminPage.vue'
+import AdminUser from '@/views/AdminView/AdminUser.vue'
+import LoginPage from '@/views/LoginPage.vue'
+import HomePage from '@/views/userView/HomePage.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  { path: '/', redirect: '/masuk' },
-  {
-    path: '/masuk',
-    component: RegisterAndLogin,
-  },
+  { path: '/', redirect: '/user' },
+  { path: '/login', component: LoginPage },
+  { path: '/user', component: HomePage },
   {
     path: '/admin',
     component: AdminPage,
     children: [
       { path: '/admin', component: AdminDashboard },
       { path: 'dashboard', component: AdminDashboard },
-      {
-        path: 'buku',
-        name: 'buku',
-        component: AdminBuku,
-      },
-      { path: 'user', name: 'user0', component: AdminUser },
+      { path: 'buku', name: 'buku', component: AdminBuku },
+      { path: 'user', name: 'user', component: AdminUser },
     ],
   },
 ]
