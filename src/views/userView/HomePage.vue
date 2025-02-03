@@ -1,12 +1,14 @@
 <template>
-  <NavbarUser />
-  <div>
+  <div class="w-full flex flex-col">
+    <NavbarUser />
+    <SwiperUser class="place-self-center" />
     <h1>Welcome to the Home Page</h1>
     <p>Ini di Homepage view.</p>
     <button @click="logout" class="btn btn-active btn-secondary">logout</button>
   </div>
 </template>
 <script setup>
+import SwiperUser from '@/components/user/SwiperUser.vue'
 import NavbarUser from '@/components/user/NavbarUser.vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
