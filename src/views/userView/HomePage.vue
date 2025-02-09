@@ -1,10 +1,42 @@
 <template>
   <div class="w-full flex flex-col">
-    <NavbarUser />
-    <SwiperUser class="place-self-center" />
-    <h1>Welcome to the Home Page</h1>
-    <p>Ini di Homepage view.</p>
-    <button @click="logout" class="btn btn-active btn-secondary">logout</button>
+    <NavbarUser class="z-20" />
+    <SwiperUser class="w-2/4 self-center" />
+    <div>
+      <h1 class="text-2xl font-bold">Welcome to the Home Page</h1>
+      <p>Ini di Homepage view.</p>
+      <button @click="logout" class="btn btn-active btn-secondary">logout</button>
+
+      <div class="card-body">
+        <h2>Populer</h2>
+        <div class="flex flex-row gap-5">
+          <div class="card bg-base-100 image-full w-64 shadow-xl">
+            <figure>
+              <img src="/src/assets/gibrna.jpg" alt="Shoes" />
+            </figure>
+            <div class="card-body">
+              <h2 class="card-title">Shoes!</h2>
+              <p>If a dog chews shoes whose shoes does he choose?</p>
+              <div class="card-actions justify-end">
+                <button class="btn btn-primary">Buy Now</button>
+              </div>
+            </div>
+          </div>
+          <div class="card bg-base-100 image-full w-64 shadow-xl">
+            <figure>
+              <img src="/src/assets/gibrna.jpg" alt="Shoes" />
+            </figure>
+            <div class="card-body">
+              <h2 class="card-title">Shoes!</h2>
+              <p>If a dog chews shoes whose shoes does he choose?</p>
+              <div class="card-actions justify-end">
+                <button class="btn btn-primary">Buy Now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <script setup>

@@ -1,21 +1,27 @@
 <template>
   <div class="p-4 sm:p-6 md:p-8">
     <div class="flex justify-between items-center mb-4">
-      <h2 class="text-2xl font-bold">user</h2>
+      <h2 class="text-2xl font-bold">Daftar Akun</h2>
       <button @click="showModal = true" class="btn btn-success">Tambah User</button>
+    </div>
+    <!-- notifikasi -->
+    <div v-if="showNotif" class="toast z-10 toast-top toast-center">
+      <div role="alert" class="alert" :class="notifikasi.tipe">
+        <span>{{ notifikasi.pesan }}.</span>
+      </div>
     </div>
 
     <!-- Tabel user -->
-    <table v-if="user.length > 0" class="table w-full table-auto">
-      <thead>
+    <table v-if="paginatedBooks.length > 0" class="table w-full table-auto">
+      <thead class="bg-primary text-white text-center">
         <tr>
           <th>Nama</th>
-          <th>Email</th>
+          <th>password</th>
           <th>Aksi</th>
         </tr>
       </thead>
-      <tbody>
-        <tr v-for="user in user" :key="user.id">
+      <tbody class="text-center bg-base-200">
+        <tr v-for="user in paginatedBooks" :key="user.id">
           <td>{{ user.name }}</td>
           <td>{{ user.password }}</td>
           <td>
@@ -26,8 +32,27 @@
       </tbody>
     </table>
 
+    <!-- Bab bab an jir -->
+    <div v-if="paginatedBooks.length > 0" class="flex justify-center mt-4">
+      <button
+        @click="changePage('prev')"
+        :disabled="currentPage === 1"
+        class="btn btn-sm btn-outline"
+      >
+        Previous
+      </button>
+      <span class="mx-2">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button
+        @click="changePage('next')"
+        :disabled="currentPage === totalPages"
+        class="btn btn-sm btn-outline"
+      >
+        Next
+      </button>
+    </div>
+
     <!-- Modal Tambah/Edit User -->
-    <div v-if="showModal" class="modal modal-open">
+    <div v-if="showModal" class="modal modal-open z-0">
       <div class="modal-box max-w-5xl">
         <h3 class="font-bold text-lg mb-4">{{ editMode ? 'Edit User' : 'Tambah User' }}</h3>
         <form @submit.prevent="editMode ? updateUser() : saveUser()">
@@ -49,10 +74,10 @@
             </label>
             <input
               v-model="newUser.password"
-              type="email"
+              type="password"
               placeholder="Email User"
               class="input input-bordered"
-              :class="{ 'border-red-500': errorFields.email }"
+              :class="{ 'border-red-500': errorFields.password }"
             />
           </div>
           <div class="modal-action">
@@ -72,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { database } from '@/firebase'
 import { ref as dbRef, onValue, remove, set, update } from 'firebase/database'
 
@@ -92,10 +117,11 @@ onMounted(() => {
         const user = data[key]
         return {
           id: key,
-          name: user.name || 'Tanpa Nama',
+          name: user.username || 'Tanpa Nama',
           password: user.password || 'Tidak Diketahui',
         }
       })
+      paginationUser()
       noData.value = false
     } else {
       noData.value = true
@@ -159,26 +185,26 @@ const validateUser = () => {
 const saveUser = () => {
   const hasError = validateUser()
   if (hasError) {
-    alert('Harap lengkapi semua field yang diperlukan.')
+    showNotifikasi('Harap lengkapi semua field yang diperlukan', 'alert-error')
     return
   }
 
-  const sanitizedEmail = newUser.value.password.trim().replace(/[.#$/[\]]/g, '')
-  if (!sanitizedEmail) {
-    alert('Email user tidak boleh kosong atau tidak valid.')
+  const sanitizedname = newUser.value.name.trim().replace(/[.#$/[\]]/g, '')
+  if (!sanitizedname) {
+    showNotifikasi(' username tidak valid', 'alert-error')
     return
   }
 
   openConfirmModal('Apakah Anda yakin ingin menambahkan user ini?', () => {
-    const newUserRef = dbRef(database, `user/${sanitizedEmail}`)
+    const newUserRef = dbRef(database, `user/${sanitizedname}`)
     set(newUserRef, newUser.value)
       .then(() => {
         closeModal()
-        console.log('User berhasil ditambahkan')
+        showNotifikasi('User berhasil ditambahkan', 'alert-success')
       })
       .catch((error) => {
         alert(`Gagal menambahkan user: ${error.message}`)
-        console.error(error)  
+        console.error(error)
       })
   })
 }
@@ -205,7 +231,7 @@ const updateUser = () => {
     update(userRef, newUser.value)
       .then(() => {
         closeModal()
-        console.log('User berhasil diperbarui')
+        showNotifikasi('User berhasil diperbarui', 'alert-success')
       })
       .catch((error) => {
         alert(`Gagal memperbarui user: ${error.message}`)
@@ -219,7 +245,8 @@ const deleteUser = (userId) => {
   const userRef = dbRef(database, `user/${userId}`)
   remove(userRef)
     .then(() => {
-      console.log('User berhasil dihapus')
+      cekPageKetikaUserDiHapus()
+      showNotifikasi('User berhasil dihapus', 'alert-success')
       user.value = user.value.filter((user) => user.id !== userId)
     })
     .catch((error) => {
@@ -249,5 +276,54 @@ const executeConfirmAction = () => {
     confirmAction.value() // Jalankan aksi
   }
   closeConfirmModal()
+}
+
+//bab bab an biar keren
+const paginatedBooks = ref([]) // Untuk menyimpan buku yang dipaginasi
+const currentPage = ref(1) // Halaman saat ini
+const itemsPerPage = 5 // Jumlah item per halaman
+
+const paginationUser = () => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = currentPage.value * itemsPerPage
+  paginatedBooks.value = user.value.slice(start, end)
+}
+const totalPages = computed(() => {
+  return Math.ceil(user.value.length / itemsPerPage)
+})
+const changePage = (direction) => {
+  if (direction === 'next' && currentPage.value < totalPages.value) {
+    currentPage.value++
+  } else if (direction === 'prev' && currentPage.value > 1) {
+    currentPage.value--
+  }
+  paginationUser()
+}
+
+// Fungsi untuk menghapus user atau akun
+const cekPageKetikaUserDiHapus = () => {
+  const bukuYangTersisaDidalamPage = paginatedBooks.value
+  if (bukuYangTersisaDidalamPage.length === 0 && currentPage.value > 1) {
+    currentPage.value--
+    paginationUser()
+  }
+}
+
+// Notifikasi handler ni Bossss
+const showNotif = ref(false)
+const notifikasi = ref({
+  pesan: '',
+  tipe: '',
+})
+const showNotifikasi = (pesan, tipe) => {
+  notifikasi.value = {
+    pesan: pesan,
+    tipe: tipe,
+  }
+  showNotif.value = true
+  setTimeout(() => {
+    notifikasi.value = ''
+    showNotif.value = false
+  }, 3000)
 }
 </script>

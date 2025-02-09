@@ -102,7 +102,7 @@ const register = async () => {
     // Arahkan pengguna ke halaman login setelah sukses
     Pesan('Registrasi berhasil! Silakan login')
     setTimeout(() => {
-      router.push('/login')
+      router.push('/')
     }, 1000)
   } catch (error) {
     Pesan('Terjadi kesalahan: ' + error.message)
