@@ -5,7 +5,6 @@ This is library website. I code this for my last Project in high school.If you f
 # What U should Have before Installing
 - pdf-poppler
 - poppler
-- 
 ## Project Setup
 
 ```sh
