@@ -8,7 +8,7 @@ const firebaseConfig = {
   projectId: 'wijang1',
   storageBucket: 'wijang1.firebasestorage.app',
   messagingSenderId: '1018107958280',
-  appId: '1:1018107958280:web:3826a51959fca6a8962dbd',
+  appId: '1:1018107958280:web:3826a51959fca6a8962dbd',  
   measurementId: 'G-TR7C7S1KF0',
 }
 

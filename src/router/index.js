@@ -4,14 +4,34 @@ import AdminPage from '@/views/AdminView/AdminPage.vue'
 import AdminUser from '@/views/AdminView/AdminUser.vue'
 import LRPAge from '@/views/LoginRegis.vue'
 import HomePage from '@/views/userView/HomePage.vue'
+import JelajahiPage from '@/views/userView/JelajahiPage.vue'
+import UserPageHandler from '@/views/userView/UserPageHandler.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  { path: '/', redirect: '/user', meta: { requiresAuth: true } },
-  { path: '/logreg', component: LRPAge },
-  { path: '/user', component: HomePage, meta: { requiresAuth: true } },
+  {
+    path: '/',
+    component: UserPageHandler,
+    meta: { requiresAuth: true },
+    children: [
+      { path: '/', name: 'Home', component: HomePage },
+      {
+        path: '/jelajahi',
+        name: 'Jelajahi',
+        component: JelajahiPage,
+      },
+    ],
+  },
+  { path: '/logreg', name: 'LoginRegister', component: LRPAge },
+  { path: '/baca/', component: () => import('@/views/userView/BacaBuku.vue') },
+  {
+    path: '/buku/:kategori/:id',
+    name: 'Buku',
+    component: () => import('@/views/userView/DetailBuku.vue'),
+  },
   {
     path: '/admin',
+    name: 'Admin',
     component: AdminPage,
     meta: { requiresAuth: true },
     children: [

@@ -47,7 +47,7 @@ const slides = ref([
   {
     title: 'Judul Slide 1',
     description: 'Deskripsi slide pertama.',
-    bgImage: 'https://source.unsplash.com/600x400/?nature',
+    bgImage: '@/assets/images/gibrna.jpg',
     image: 'https://source.unsplash.com/200x200/?nature',
   },
   {

@@ -109,8 +109,8 @@ const login = async () => {
 
     if (userData.password === isiLogin.value.password) {
       localStorage.setItem('user', JSON.stringify(userData))
-
-      router.push('/user')
+      
+      router.push('/')
     } else {
       showError('Username atau password salah')
     }

@@ -11,36 +11,40 @@
     <div v-if="NoData" class="text-center">Tidak ada buku.</div>
 
     <!-- Tabel Buku -->
-    <table v-if="paginatedBooks.length > 0" class="table w-full table-auto">
+    <table v-if="paginatedBooks.length > 0" class="table w-full table-auto table-zebra">
       <thead>
-        <tr class="bg-primary text-white text-center">
-          <th>Judul</th>
-          <th>Penulis</th>
-          <th>Tahun Rilis</th>
-          <th>Kategori</th>
-          <th>Stock</th>
-          <th>Sedia</th>
-          <th>Gambar</th>
-          <th>Aksi</th>
+        <tr class="bg-base-300 text-white text-center border border-gray-600">
+          <th class="border-x border-gray-600">Judul</th>
+          <th class="border-x border-gray-600">Penulis</th>
+          <th class="border-x border-gray-600">Tahun Rilis</th>
+          <th class="border-x border-gray-600">Kategori</th>
+          <th class="border-x border-gray-600">Stock</th>
+          <!-- <th class="border-x border-gray-600">Sedia</th> -->
+          <th class="border-x border-gray-600">Gambar</th>
+          <th class="border-x border-gray-600">Aksi</th>
         </tr>
       </thead>
-      <tbody class="text-center bg-base-200">
+      <tbody class="text-center bg-base-200 border border-gray-600">
         <tr v-for="book in paginatedBooks" :key="book.id">
-          <td>{{ book.judul }}</td>
-          <td>{{ book.author }}</td>
-          <td>{{ book.waktuRilis }}</td>
-          <td>{{ book.kategori }}</td>
-          <td>{{ book.stock }}</td>
-          <td>{{ book.ketersediaan ? 'Tersedia' : 'Tidak Tersedia' }}</td>
-          <td>
+          <td class="border-b border-gray-600">
+            <p class="text-balance">{{ book.judul }}</p>
+          </td>
+          <td class="border border-gray-600">{{ book.author }}</td>
+          <td class="border border-gray-600">{{ book.waktuRilis }}</td>
+          <td class="border border-gray-600">{{ book.kategori }}</td>
+          <td class="border border-gray-600">{{ book.stock }}</td>
+          <!-- <td class="border border-gray-600">
+            {{ book.ketersediaan ? 'Tersedia' : 'Tidak Tersedia' }}
+          </td> -->
+          <td class="border border-gray-600">
             <img
               v-if="book.cover"
               :src="book.cover"
               alt="Gambar Buku"
-              class="w-16 h-auto mx-auto"
+              class="w-16 aspect- mx-auto"
             />
           </td>
-          <td>
+          <td class="border-y border-gray-600">
             <button @click="editBuku(book)" class="btn btn-primary btn-sm mx-1">Edit</button>
             <button @click="deleteBook(book.id, book.kategori)" class="btn btn-danger btn-sm">
               Hapus
@@ -344,7 +348,7 @@ const validateBook = () => {
   return hasError
 }
 
-// Fungsi untuk menangani input file gambar
+//ini fungsi untuk mengubah file gambar menjadi base64
 const onFileChange = (event) => {
   const file = event.target.files[0]
   if (!file) return
@@ -378,8 +382,6 @@ const saveBook = () => {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     })
     const newBookRef = dbRef(database, `kategori/${kategoribuku}/${sanitizedTitle}`)
     set(newBookRef, newBook.value)

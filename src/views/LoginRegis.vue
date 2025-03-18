@@ -3,7 +3,7 @@
 import LoginPage from '../components/LoginPage.vue'
 import RegisterPage from '../components/RegisterPage.vue'
 import { ref } from 'vue'
-const PindahForm = ref(false)
+const PindahForm = ref(true)
 </script>
 <template>
   <div class="flex justify-center items-center h-screen max-w-full min-w-32">

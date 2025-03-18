@@ -1,66 +1,77 @@
 <template>
-  <nav class="navbar bg-base-100 border-blue-50 border-b-2">
+  <nav class="navbar bg-base-300 p-5 border-gray-600 border-b-2">
     <div class="navbar-start">
       <a href="#" class="text-lg font-bold">Nama Website</a>
     </div>
     <div class="navbar-center">
-      <div class="dropdown dropdown-bottom">
-        <div tabindex="0" role="button" class="btn m-1">Kategori</div>
-        <ul tabindex="0" class="dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow">
-          <li><a>Item 1</a></li>
-          <li><a>Item 2</a></li>
-        </ul>
-      </div>
+      <ul class="flex space-x-10 font-medium">
+        <li>
+          <router-link
+            :to="{ name: 'Home' }"
+            class="transition-colors duration-300"
+            exact-active-class="text-blue-500 font-bold"
+          >
+            Home
+          </router-link>
+        </li>
+        <li>
+          <router-link
+            :to="{ name: 'Jelajahi' }"
+            class="transition-colors duration-300"
+            exact-active-class="text-blue-500 font-bold"
+          >
+            Buku
+          </router-link>
+        </li>
+
+        <!-- Hanya tampil jika userRole === 'admin' -->
+        <li v-if="userRole && userRole.toLowerCase() === 'admin'">
+          <router-link
+            :to="'/admin'"
+            class="transition-colors duration-300"
+            exact-active-class="text-blue-500 font-bold"
+          >
+            Admin
+          </router-link>
+        </li>
+      </ul>
+    </div>
+    <div class="navbar-end gap-6">
       <div class="form-control flex flex-row">
         <input type="text" placeholder="Search" class="input input-bordered w-24 md:w-auto" />
-        <button class="btn btn-ghost btn-circle">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </button>
       </div>
-    </div>
-    <div class="navbar-end">
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
           <div class="w-10 rounded-full">
             <img
-              alt="Tailwind CSS Navbar component"
+              alt="Profile Picture"
               src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
             />
           </div>
         </div>
         <ul
           tabindex="0"
-          class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+          class="menu menu-lg dropdown-content bg-base-100 rounded-box z-20 mt-3 w-52 p-2 shadow"
         >
-          <li>
-            <a class="justify-between">
-              Profile
-              <span class="badge">New</span>
-            </a>
-          </li>
-          <li><a>Settings</a></li>
-          <li><a @click="logout">Logout</a></li>
+          <li><a class="justify-between">Profile</a></li>
+
+          <li><a class="text-error font-bold" @click="logout">Logout</a></li>
         </ul>
       </div>
     </div>
   </nav>
 </template>
+
 <script setup>
 import { useRouter } from 'vue-router'
+
 const router = useRouter()
+
+// Props dari parent component
+defineProps({
+  userRole: String,
+})
+
 const logout = () => {
   localStorage.clear()
   router.push('/logreg')

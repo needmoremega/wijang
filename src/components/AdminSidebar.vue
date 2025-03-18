@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-base-200 w-64 p-4 fixed inset-0 md:relative">
+  <div class="bg-base-200 w-48 p-4 fixed inset-0 md:relative">
     <h1 class="text-xl text-center font-bold mb-4">Wijang Admin</h1>
 
     <!-- Sidebar Menu -->
