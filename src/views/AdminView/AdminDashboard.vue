@@ -13,6 +13,7 @@
         <h3 class="text-lg font-semibold">Buku Tersedia</h3>
         <p class="text-2xl font-bold">95</p>
       </div>
+      
       <div class="card bg-base-100 shadow-md p-4">
         <h3 class="text-lg font-semibold">Buku Dipinjam</h3>
         <p class="text-2xl font-bold">25</p>
