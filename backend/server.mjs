@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename)
 // Inisialisasi Firebase
 // ====================
 
-// Proyek pertama: "wijang" untuk RTDB
+//untuk RTDB
 const serviceAccountWijang = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'wijang1-firebase-private-key.json'), 'utf8'),
 )
@@ -24,11 +24,10 @@ const appRTDB = admin.initializeApp({
   databaseURL: 'https://wijang1-default-rtdb.asia-southeast1.firebasedatabase.app/', // Ganti dengan URL RTDB proyek "wijang"
 })
 
-// Proyek kedua: Misal file service account dari teman untuk Storage
+// service account dari teman untuk Storage
 const serviceAccountFriend = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'informasippdb-a32b5-firebase.json'), 'utf8'),
 )
-// Inisialisasi dengan nama app khusus, misalnya "storageApp"
 const appStorage = admin.initializeApp(
   {
     credential: admin.credential.cert(serviceAccountFriend),
