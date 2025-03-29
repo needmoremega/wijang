@@ -377,12 +377,6 @@ const saveBook = () => {
   }
   openConfirmModal('Apakah Anda yakin ingin menambahkan buku ini?', () => {
     newBook.value.ketersediaan = newBook.value.stock > 0
-    // Set waktu rilis otomatis dengan format yang lebih dapat dibaca
-    newBook.value.waktuRilis = new Date().toLocaleString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
     const newBookRef = dbRef(database, `kategori/${kategoribuku}/${sanitizedTitle}`)
     set(newBookRef, newBook.value)
       .then(() => {
