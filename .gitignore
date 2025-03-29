@@ -13,7 +13,10 @@ dist
 dist-ssr
 coverage
 *.local
-
+.env
+*.json
+# informasippdb-a32b5-firebase.json
+# wijang1-firebase-private-key.json
 /cypress/videos/
 /cypress/screenshots/
 

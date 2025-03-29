@@ -1,208 +1,218 @@
 <template>
-  <div class="p-4 sm:p-6 md:p-8">
+  <div class="p-4 sm:p-6 md:p-8 text-gray-900 dark:text-gray-200">
     <!-- Header -->
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-2xl font-bold">Daftar Buku</h2>
-      <button @click="showModal = true" class="btn btn-success">Tambah Buku</button>
+      <button @click="openModal" class="btn btn-success">Tambah Buku</button>
     </div>
 
     <!-- Tampilan Loading/No Data -->
-    <div v-if="isLoading" class="text-center">Loading...</div>
-    <div v-if="NoData" class="text-center">Tidak ada buku.</div>
+    <div v-if="isLoading" class="text-center text-lg">Loading...</div>
+    <div v-else-if="NoData" class="text-center text-lg">Tidak ada buku.</div>
 
     <!-- Tabel Buku -->
-    <table v-if="paginatedBooks.length > 0" class="table w-full table-auto table-zebra">
-      <thead>
-        <tr class="bg-base-300 text-white text-center border border-gray-600">
-          <th class="border-x border-gray-600">Judul</th>
-          <th class="border-x border-gray-600">Penulis</th>
-          <th class="border-x border-gray-600">Tahun Rilis</th>
-          <th class="border-x border-gray-600">Kategori</th>
-          <th class="border-x border-gray-600">Stock</th>
-          <!-- <th class="border-x border-gray-600">Sedia</th> -->
-          <th class="border-x border-gray-600">Gambar</th>
-          <th class="border-x border-gray-600">Aksi</th>
-        </tr>
-      </thead>
-      <tbody class="text-center bg-base-200 border border-gray-600">
-        <tr v-for="book in paginatedBooks" :key="book.id">
-          <td class="border-b border-gray-600">
-            <p class="text-balance">{{ book.judul }}</p>
-          </td>
-          <td class="border border-gray-600">{{ book.author }}</td>
-          <td class="border border-gray-600">{{ book.waktuRilis }}</td>
-          <td class="border border-gray-600">{{ book.kategori }}</td>
-          <td class="border border-gray-600">{{ book.stock }}</td>
-          <!-- <td class="border border-gray-600">
-            {{ book.ketersediaan ? 'Tersedia' : 'Tidak Tersedia' }}
-          </td> -->
-          <td class="border border-gray-600">
-            <img
-              v-if="book.cover"
-              :src="book.cover"
-              alt="Gambar Buku"
-              class="w-16 aspect- mx-auto"
-            />
-          </td>
-          <td class="border-y border-gray-600">
-            <button @click="editBuku(book)" class="btn btn-primary btn-sm mx-1">Edit</button>
-            <button @click="deleteBook(book.id, book.kategori)" class="btn btn-danger btn-sm">
-              Hapus
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto">
+      <table v-if="!isLoading && books.length > 0" class="table w-full table-zebra">
+        <thead>
+          <tr class="bg-gray-800 text-white text-center">
+            <th>Judul</th>
+            <th>Penulis</th>
+            <th>Tanggal Terbit</th>
+            <th>Kategori</th>
+            <th>Stock</th>
+            <th>Cover</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="text-center bg-gray-900">
+          <tr v-for="book in paginatedBooks" :key="book.id">
+            <td>{{ book.judul }}</td>
+            <td>{{ book.author }}</td>
+            <td>{{ book.TanggalTerbit }}</td>
+            <td>{{ book.kategori }}</td>
+            <td>{{ book.stock }}</td>
+            <td>
+              <img
+                v-if="book.cover"
+                :src="book.cover"
+                alt="Cover Buku"
+                class="w-16 mx-auto rounded-md shadow-md"
+              />
+            </td>
+            <td>
+              <button @click="editBuku(book)" class="btn btn-primary btn-sm mx-1">Edit</button>
+              <button @click="deleteBook(book.id, book.kategori)" class="btn btn-error btn-sm">
+                Hapus
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <!-- Bab bab an jir -->
-    <div v-if="books.length > 0" class="flex justify-center mt-4">
-      <button
-        @click="changePage('prev')"
-        :disabled="currentPage === 1"
-        class="btn btn-sm btn-outline"
-      >
+    <!-- Pagination -->
+    <div v-if="books.length > 0" class="flex justify-center mt-4 space-x-4">
+      <button @click="changePage('prev')" :disabled="currentPage === 1" class="btn btn-outline">
         Previous
       </button>
-      <span class="mx-2">Page {{ currentPage }} of {{ totalPages }}</span>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
       <button
         @click="changePage('next')"
         :disabled="currentPage === totalPages"
-        class="btn btn-sm btn-outline"
+        class="btn btn-outline"
       >
         Next
       </button>
     </div>
 
-    <!-- Komponen untuk memberi tahu -->
-    <div v-if="showNotif" class="toast z-10 toast-top toast-end">
-      <div role="alert" class="alert" :class="notifikasi.tipe">
-        <span>{{ notifikasi.pesan }}.</span>
-      </div>
-    </div>
     <!-- Modal Tambah/Edit Buku -->
-    <div v-if="showModal" class="modal modal-open -z-0">
-      <div class="modal-box max-w-5xl">
-        <h3 class="font-bold text-lg mb-4">{{ editKah ? 'Edit Buku' : 'Tambah Buku' }}</h3>
-        <form @submit.prevent="editKah ? updateBuku() : saveBook()">
-          <!-- Judul -->
-          <div class="form-control mb-4">
-            <label class="label">
-              <span class="label-text">Judul</span>
-            </label>
+    <div
+      v-if="showModal"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4"
+    >
+      <div class="modal-box max-w-3xl p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
+        <h3 class="font-bold text-xl mb-4 text-center">
+          {{ editMode ? 'Edit Buku' : 'Tambah Buku' }}
+        </h3>
+        <form @submit.prevent="editMode ? updateBuku() : saveBook()" class="space-y-4">
+          <div class="form-control">
+            <label class="label">Judul</label>
             <input
               v-model="newBook.judul"
               type="text"
-              placeholder="Judul Buku"
-              class="input input-bordered"
-              :class="{ 'border-red-500': errorFields.judul }"
+              class="input input-bordered dark:bg-gray-700"
             />
           </div>
-          <!-- Penulis -->
-          <div class="form-control mb-4">
-            <label class="label">
-              <span class="label-text">Penulis</span>
-            </label>
+          <div class="form-control">
+            <label class="label">Penulis</label>
             <input
               v-model="newBook.author"
               type="text"
-              placeholder="Nama Penulis"
-              class="input input-bordered"
-              :class="{ 'border-red-500': errorFields.author }"
+              class="input input-bordered dark:bg-gray-700"
             />
           </div>
-          <!-- Kategori -->
-          <div class="form-control mb-4">
-            <label class="label">
-              <span class="label-text">Kategori</span>
-            </label>
+          <div class="form-control">
+            <label class="label">Kategori</label>
             <input
               v-model="newBook.kategori"
               type="text"
-              placeholder="Kategori Buku"
-              class="input input-bordered"
-              :class="{ 'border-red-500': errorFields.kategori }"
+              class="input input-bordered dark:bg-gray-700"
             />
           </div>
-          <!-- Stock -->
-          <div class="form-control mb-4">
-            <label class="label">
-              <span class="label-text">Stock</span>
-            </label>
+          <div class="form-control">
+            <label class="label">Stock</label>
             <input
-              v-model="newBook.stock"
+              v-model.number="newBook.stock"
               type="number"
-              placeholder="Jumlah Stock"
-              class="input input-bordered"
-              :class="{ 'border-red-500': errorFields.stock }"
+              class="input input-bordered dark:bg-gray-700"
             />
           </div>
-          <!-- Input Gambar -->
-          <div class="form-control mb-4">
-            <label class="label">
-              <span class="label-text">Gambar</span>
-            </label>
+          <div class="form-control">
+            <label class="label">Tanggal Terbit</label>
+            <input
+              v-model="newBook.TanggalTerbit"
+              type="date"
+              class="input input-bordered dark:bg-gray-700"
+            />
+          </div>
+          <div class="form-control">
+            <label class="label">Cover</label>
             <input
               type="file"
-              @change="onFileChange"
-              accept="image/*"
-              class="file-input border-gray-700"
-              :class="{ 'border-red-500': errorFields.cover }"
+              @change="captureCoverEvent"
+              class="file-input file-input-bordered dark:bg-gray-700"
             />
           </div>
-          <!-- Preview Gambar -->
-          <div v-if="newBook.cover" class="mb-4">
-            <img :src="newBook.cover" alt="Preview Gambar" class="w-32 h-auto" />
+          <div class="form-control">
+            <label class="label">PDF</label>
+            <input
+              type="file"
+              @change="capturePdfEvent"
+              accept="application/pdf"
+              class="file-input file-input-bordered dark:bg-gray-700"
+            />
           </div>
-          <!-- Tampilkan waktu rilis yang sudah diformat (read-only)
-          <div class="form-control mb-4">
-            <label class="label">
-              <span class="label-text">Waktu Rilis</span>
-            </label>
-            <input type="text" :value="newBook.waktuRilis" class="input input-bordered" readonly />
-          </div> -->
-          <div class="modal-action">
-            <button type="button" class="btn" @click="closeModal">Batal</button>
-            <button type="submit" class="btn btn-primary">Simpan</button>
+          <div class="modal-action flex justify-between">
+            <button type="button" class="btn btn-ghost" @click="closeModal">Batal</button>
+            <button type="submit" class="btn btn-primary">
+              {{ editMode ? 'Update' : 'Simpan' }}
+            </button>
           </div>
         </form>
       </div>
     </div>
+    <!-- Modal Konfirmasi -->
+    <div
+      v-if="showConfirmModal"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4"
+    >
+      <div class="modal-box max-w-md p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
+        <p class="text-lg text-center">{{ confirmMessage }}</p>
+        <div class="modal-action flex justify-between mt-4">
+          <button class="btn" @click="closeConfirmModal">Batal</button>
+          <button class="btn btn-error" @click="executeConfirmAction">Ya</button>
+        </div>
+      </div>
+    </div>
 
-    <!-- Komponen Konfirmasi Popup -->
-    <KonfirmasiPopup
-      :isVisible="showConfirmModal"
-      :message="confirmMessage"
-      @confirm="executeConfirmAction"
-      @cancel="closeConfirmModal"
-    />
+    <!-- Notifikasi Toast -->
+    <div v-if="showNotif" class="toast toast-top toast-end">
+      <div class="alert" :class="notifikasi.tipe">
+        <span>{{ notifikasi.pesan }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { database } from '@/firebase'
-import { ref as dbRef, onValue, remove, set, update } from 'firebase/database'
-const books = ref([])
-const dbRefBooks = dbRef(database, 'kategori')
+import axios from 'axios'
 
+/* ---------------------------
+   Variabel dan State
+---------------------------- */
+const books = ref([])
 const isLoading = ref(true)
 const NoData = ref(false)
-const editKah = ref(false)
+const editMode = ref(false)
+const currentPage = ref(1)
+const itemsPerPage = 5
+const paginatedBooks = ref([])
+const showModal = ref(false)
+const showConfirmModal = ref(false)
+const confirmMessage = ref('')
+let confirmAction = null
+let pdfEventData = null // untuk menyimpan event file PDF
+let coverEventData = null // untuk menyimpan event file cover
+const newBook = ref({
+  judul: '',
+  author: '',
+  TanggalTerbit: '',
+  kategori: '',
+  stock: 0,
+  cover: '',
+  pdf: '',
+  ketersediaan: true,
+})
 
-const idBukuEdit = ref(null)
-//bab bab an biar keren
-const paginatedBooks = ref([]) // Untuk menyimpan buku yang dipaginasi
-const currentPage = ref(1) // Halaman saat ini
-const itemsPerPage = 5 // Jumlah item per halaman
+const errorFields = ref({
+  judul: false,
+  author: false,
+  kategori: false,
+  stock: false,
+  cover: false,
+  pdf: false,
+})
 
+/* ---------------------------
+   Helper Functions
+---------------------------- */
 const paginateBooks = () => {
   const start = (currentPage.value - 1) * itemsPerPage
   const end = currentPage.value * itemsPerPage
   paginatedBooks.value = books.value.slice(start, end)
 }
-const totalPages = computed(() => {
-  return Math.ceil(books.value.length / itemsPerPage)
-})
+const totalPages = computed(() => Math.ceil(books.value.length / itemsPerPage))
 const changePage = (direction) => {
   if (direction === 'next' && currentPage.value < totalPages.value) {
     currentPage.value++
@@ -212,99 +222,120 @@ const changePage = (direction) => {
   paginateBooks()
 }
 
-onMounted(() => {
-  onValue(dbRefBooks, (snapshot) => {
-    const data = snapshot.val()
-    if (data) {
-      let kumpulanBuku = []
-      Object.keys(data).forEach((kategori) => {
-        const buku = data[kategori]
-        Object.keys(buku).forEach((idbuku) => {
-          const book = buku[idbuku]
-          kumpulanBuku.push({
-            id: idbuku,
-            judul: book.judul || 'tidak ada judul',
-            author: book.author || 'tidak ada penulis',
-            waktuRilis: book.waktuRilis || 'tidak ada tahun rilis',
-            kategori: kategori,
-            stock: book.stock || 0,
-            ketersediaan: book.ketersediaan || false,
-            cover: book.cover || '',
-          })
-        })
-      })
-      books.value = kumpulanBuku
-      paginateBooks()
-      NoData.value = false
-    } else {
-      NoData.value = true
-    }
-    isLoading.value = false
-  })
-})
-
-const showModal = ref(false)
-const newBook = ref({
-  judul: '',
-  author: '',
-  waktuRilis: '',
-  kategori: '',
-  stock: 0,
-  ketersediaan: true,
-  cover: '',
-})
-
-// Tempat untuk validasi input pengguna
-const errorFields = ref({
-  judul: false,
-  author: false,
-  kategori: false,
-  stock: false,
-  cover: false,
-})
-
-// Modal konfirmasi
-const showConfirmModal = ref(false)
-const confirmMessage = ref('')
-const confirmAction = ref(null)
-
-const openConfirmModal = (message, action) => {
-  confirmMessage.value = message
-  confirmAction.value = action
-  showConfirmModal.value = true
+/* ---------------------------
+   Notifikasi
+---------------------------- */
+const showNotif = ref(false)
+const notifikasi = ref({ pesan: '', tipe: '' })
+const showNotifikasi = (pesan, tipe) => {
+  notifikasi.value = { pesan, tipe }
+  showNotif.value = true
+  setTimeout(() => {
+    showNotif.value = false
+  }, 3000)
 }
 
+/* ---------------------------
+   Modal Konfirmasi
+---------------------------- */
+const openConfirmModal = (message, action) => {
+  confirmMessage.value = message
+  confirmAction = action
+  showConfirmModal.value = true
+}
 const closeConfirmModal = () => {
   showConfirmModal.value = false
   confirmMessage.value = ''
-  confirmAction.value = null
+  confirmAction = null
 }
-
 const executeConfirmAction = () => {
-  if (typeof confirmAction.value === 'function') {
-    confirmAction.value() // Jalankan aksi yang sudah diset
+  if (typeof confirmAction === 'function') {
+    confirmAction()
   }
   closeConfirmModal()
 }
 
-// Fungsi untuk menutup modal tambah/edit
+/* ---------------------------
+   CRUD API Calls ke Express
+---------------------------- */
+const fetchBooks = async () => {
+  try {
+    isLoading.value = true
+    const res = await axios.get('http://localhost:3001/books')
+    books.value = res.data
+    NoData.value = books.value.length === 0
+    paginateBooks()
+  } catch (error) {
+    console.error('Error fetching books:', error)
+    NoData.value = true
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const saveBookAPI = async () => {
+  try {
+    const res = await axios.post('http://localhost:3001/books', newBook.value)
+    showNotifikasi(res.data.message, 'alert-success')
+    closeModal()
+    fetchBooks()
+  } catch (error) {
+    console.error('Error adding book:', error)
+    showNotifikasi('Gagal menambahkan buku', 'alert-error')
+  }
+}
+
+const updateBookAPI = async () => {
+  try {
+    // Asumsi id buku di sini disimpan dalam newBook.judul (judul yang sudah disanitasi)
+    const sanitizedTitle = newBook.value.judul.trim().replace(/[.#$/[\]]/g, '')
+    const url = `http://localhost:3001/books/${newBook.value.kategori}/${sanitizedTitle}`
+    const res = await axios.put(url, newBook.value)
+    showNotifikasi(res.data.message, 'alert-success')
+    closeModal()
+    fetchBooks()
+  } catch (error) {
+    console.error('Error updating book:', error)
+    showNotifikasi('Gagal memperbarui buku', 'alert-error')
+  }
+}
+
+const deleteBook = (id, kategori) => {
+  openConfirmModal('Apakah Anda yakin ingin menghapus buku ini?', async () => {
+    try {
+      const url = `http://localhost:3001/books/${kategori}/${id}`
+      const res = await axios.delete(url)
+      showNotifikasi(res.data.message, 'alert-success')
+      fetchBooks()
+    } catch (error) {
+      console.error('Error deleting book:', error)
+      showNotifikasi('Gagal menghapus buku', 'alert-error')
+    }
+  })
+}
+
+/* ---------------------------
+   Fungsi Modal
+---------------------------- */
+const openModal = () => {
+  resetForm()
+  showModal.value = true
+}
 const closeModal = () => {
   showModal.value = false
   resetForm()
 }
-
-// Fungsi untuk mereset form
 const resetForm = () => {
-  editKah.value = false
-  idBukuEdit.value = null
+  editMode.value = false
   newBook.value = {
     judul: '',
     author: '',
-    waktuRilis: '',
+    TanggalTerbit: '',
     kategori: '',
     stock: 0,
-    ketersediaan: true,
     cover: '',
+    pdf: '',
+    ketersediaan: true,
   }
   errorFields.value = {
     judul: false,
@@ -312,163 +343,169 @@ const resetForm = () => {
     kategori: false,
     stock: false,
     cover: false,
+    pdf: false,
   }
 }
 
-// Fungsi validasi data input
-const validateBook = () => {
-  let hasError = false
-  errorFields.value = {
-    judul: false,
-    author: false,
-    kategori: false,
-    stock: false,
-    cover: false,
-  }
-  if (!newBook.value.judul.trim()) {
-    errorFields.value.judul = true
-    hasError = true
-  }
-  if (!newBook.value.author.trim()) {
-    errorFields.value.author = true
-    hasError = true
-  }
-  if (!newBook.value.kategori.trim()) {
-    errorFields.value.kategori = true
-    hasError = true
-  }
-  if (isNaN(newBook.value.stock) || newBook.value.stock < 0) {
-    errorFields.value.stock = true
-    hasError = true
-  }
-  if (!newBook.value.cover) {
-    errorFields.value.cover = true
-    hasError = true
-  }
-  return hasError
+// Fungsi untuk menangkap event file cover
+const captureCoverEvent = (event) => {
+  coverEventData = event
 }
+/* ---------------------------
+   Fungsi File Upload
+---------------------------- */
+// Untuk cover (gambar)
 
-//ini fungsi untuk mengubah file gambar menjadi base64
-const onFileChange = (event) => {
+// Fungsi upload cover ke backend (endpoint: /uploadCover)
+const uploadCover = async (event) => {
+  if (!event || !event.target.files[0]) return null
   const file = event.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.readAsDataURL(file)
-  reader.onload = () => {
-    newBook.value.cover = reader.result
-  }
-  reader.onerror = (error) => {
-    console.error('Error reading file:', error)
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    const res = await axios.post('http://localhost:3001/uploadCover', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return res.data.coverUrl
+  } catch (error) {
+    console.error('Error uploading cover:', error)
+    return null
   }
 }
 
-// Fungsi untuk menyimpan buku baru
-const saveBook = () => {
-  const hasError = validateBook()
-  if (hasError) {
+// Untuk PDF, simpan event agar bisa diproses saat saveBook
+const capturePdfEvent = (event) => {
+  pdfEventData = event
+}
+
+/* ---------------------------
+   Fungsi Upload PDF & Save Buku
+---------------------------- */
+// Fungsi untuk mengupload PDF ke backend dan mendapatkan URL folder hasil konversi
+const uploadPdf = async (event) => {
+  if (!event || !event.target.files[0]) return null
+  const file = event.target.files[0]
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('customName', newBook.value.judul)
+  try {
+    const res = await axios.post('http://localhost:3001/convert', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return res.data.folderUrl
+  } catch (error) {
+    console.error('Error uploading PDF:', error)
+    return null
+  }
+}
+
+// Fungsi saveBook yang menunggu upload PDF selesai sebelum menyimpan buku
+const saveBook = async () => {
+  // Validasi sederhana
+  if (
+    !newBook.value.judul.trim() ||
+    !newBook.value.author.trim() ||
+    !newBook.value.kategori.trim() ||
+    newBook.value.stock < 0
+  ) {
     showNotifikasi('Harap lengkapi semua field yang diperlukan', 'alert-warning')
     return
   }
-  const kategoribuku = newBook.value.kategori
-  const sanitizedTitle = newBook.value.judul.trim().replace(/[.#$/[\]]/g, '')
-  if (!sanitizedTitle) {
-    alert('Judul buku tidak boleh kosong atau tidak valid.')
-    return
-  }
-  openConfirmModal('Apakah Anda yakin ingin menambahkan buku ini?', () => {
+  // Konfirmasi simpan buku
+  openConfirmModal('Apakah Anda yakin ingin menambahkan buku ini?', async () => {
+    // Upload cover jika ada (tunggu proses upload cover)
+    let coverUrl = ''
+    if (coverEventData) {
+      coverUrl = await uploadCover(coverEventData)
+      if (!coverUrl) {
+        showNotifikasi('Cover gagal diunggah, buku akan disimpan tanpa cover', 'alert-warning')
+      }
+    }
+
+    // Upload PDF jika ada
+    let pdfUrl = null
+    if (pdfEventData) {
+      console.log('Uploading PDF...')
+      pdfUrl = await uploadPdf(pdfEventData)
+      if (!pdfUrl) {
+        showNotifikasi('PDF gagal diunggah, buku tetap akan disimpan tanpa PDF', 'alert-warning')
+      }
+    }
     newBook.value.ketersediaan = newBook.value.stock > 0
-    const newBookRef = dbRef(database, `kategori/${kategoribuku}/${sanitizedTitle}`)
-    set(newBookRef, newBook.value)
-      .then(() => {
-        closeModal()
-        showNotifikasi('Buku berhasil ditambahkan', 'alert-success')
-      })
-      .catch((error) => {
-        alert(`Gagal menambahkan buku: ${error.message}`)
-        showNotifikasi('Gagal menambahkan buku', 'alert-error')
-        console.error(error)
-      })
+
+    newBook.value.TanggalTerbit = new Date().toLocaleString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+
+    newBook.value.cover = coverUrl || ''
+    newBook.value.pdf = pdfUrl || ''
+
+    // Simpan buku ke backend
+    if (editMode.value) {
+      console.log('Updating book...')
+      await updateBookAPI()
+    } else {
+      console.log('Saving book...')
+      await saveBookAPI()
+    }
   })
 }
 
-// Fungsi untuk mengedit buku (siapkan data untuk diubah)
+/* ---------------------------
+   Fungsi Edit Buku
+---------------------------- */
 const editBuku = (book) => {
-  editKah.value = true
-  idBukuEdit.value = book.id
+  editMode.value = true
   newBook.value = { ...book }
   showModal.value = true
 }
 
-// Fungsi untuk memperbarui buku
-const updateBuku = () => {
-  const hasError = validateBook()
-  if (hasError) {
-    showNotifikasi('Harap lengkapi semua field yang diperlukan', ' alert-warning')
+/* ---------------------------
+   Fungsi Update Buku (dipanggil oleh form submit jika editMode true)
+---------------------------- */
+const updateBuku = async () => {
+  // Validasi sederhana
+  if (
+    !newBook.value.judul.trim() ||
+    !newBook.value.author.trim() ||
+    !newBook.value.kategori.trim() ||
+    newBook.value.stock < 0 ||
+    !newBook.value.cover
+  ) {
+    showNotifikasi('Harap lengkapi semua field yang diperlukan', 'alert-warning')
     return
   }
-  if (!idBukuEdit.value) {
-    alert('ID buku tidak ditemukan')
-    return
-  }
-  openConfirmModal('Apakah Anda yakin ingin memperbarui buku ini?', () => {
+  openConfirmModal('Apakah Anda yakin ingin memperbarui buku ini?', async () => {
+    // Jika ada file PDF baru yang diupload, proses upload terlebih dahulu
+    newBook.value.TanggalTerbit = new Date().toLocaleString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+
+    let pdfUrl = newBook.value.pdf
+    if (pdfEventData) {
+      pdfUrl = await uploadPdf(pdfEventData)
+      if (!pdfUrl) {
+        showNotifikasi('PDF gagal diunggah, buku tetap diperbarui tanpa PDF baru', 'alert-warning')
+      }
+    }
     newBook.value.ketersediaan = newBook.value.stock > 0
-    const kategori = newBook.value.kategori
-    const bookref = dbRef(database, `kategori/${kategori}/${idBukuEdit.value}`)
-    update(bookref, newBook.value)
-      .then(() => {
-        closeModal()
-        console.log('Buku berhasil diperbarui')
-        showNotifikasi('buku Berhasil Diperbarui', 'alert-success')
-      })
-      .catch((error) => {
-        alert(`Gagal memperbarui buku: ${error.message}`)
-        console.error(error)
-      })
+    newBook.value.pdf = pdfUrl || ''
+    await updateBookAPI()
   })
 }
 
-// Fungsi untuk menghapus buku
-const cekPageKetikaBukuDiHapus = () => {
-  const bukuYangTersisaDidalamPage = paginatedBooks.value
-  if (bukuYangTersisaDidalamPage.length === 0 && currentPage.value > 1) {
-    currentPage.value--
-    paginateBooks()
-  }
-}
-const deleteBook = (bookId, kategori) => {
-  openConfirmModal('Apakah Anda yakin ingin menghapus buku ini?', () => {
-    removeBook(bookId, kategori)
-  })
-}
-const removeBook = (bookId, kategori) => {
-  const bookRef = dbRef(database, `kategori/${kategori}/${bookId}`)
-  remove(bookRef)
-    .then(() => {
-      showNotifikasi('Buku berhasil dihapus', 'alert-success')
-      books.value = books.value.filter((book) => book.id !== bookId)
-      paginateBooks()
-      cekPageKetikaBukuDiHapus()
-    })
-    .catch((error) => {
-      console.error('Gagal menghapus buku:', error)
-    })
-}
-
-// Notifikasi handler ni Bossss
-const showNotif = ref(false)
-const notifikasi = ref({
-  pesan: '',
-  tipe: '',
+/* ---------------------------
+   Lifecycle Hooks
+---------------------------- */
+onMounted(() => {
+  fetchBooks()
 })
-const showNotifikasi = (pesan, tipe) => {
-  notifikasi.value = {
-    pesan: pesan,
-    tipe: tipe,
-  }
-  showNotif.value = true
-  setTimeout(() => {
-    notifikasi.value = ''
-    showNotif.value = false
-  }, 3000)
-}
 </script>
+
+<style scoped>
+/* Tambahkan style sesuai kebutuhan */
+</style>

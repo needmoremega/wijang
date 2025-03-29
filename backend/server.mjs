@@ -9,23 +9,52 @@ import { fileURLToPath } from 'url'
 
 // Konversi __dirname untuk ES Module
 const __filename = fileURLToPath(import.meta.url)
-// eslint-disable-next-line no-unused-vars
 const __dirname = path.dirname(__filename)
 
-// Inisialisasi Firebase Admin SDK
-const serviceAccount = JSON.parse(
-  fs.readFileSync('informasippdb-a32b5-firebase-adminsdk-dka9u-23eeab1df3.json', 'utf8'),
-)
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: 'informasippdb-a32b5.appspot.com',
-})
-const bucket = admin.storage().bucket()
+// ====================
+// Inisialisasi Firebase
+// ====================
 
+// Proyek pertama: "wijang" untuk RTDB
+const serviceAccountWijang = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'wijang1-firebase-private-key.json'), 'utf8'),
+)
+const appRTDB = admin.initializeApp({
+  credential: admin.credential.cert(serviceAccountWijang),
+  databaseURL: 'https://wijang1-default-rtdb.asia-southeast1.firebasedatabase.app/', // Ganti dengan URL RTDB proyek "wijang"
+})
+
+// Proyek kedua: Misal file service account dari teman untuk Storage
+const serviceAccountFriend = JSON.parse(
+  fs.readFileSync(path.join(__dirname, 'informasippdb-a32b5-firebase.json'), 'utf8'),
+)
+// Inisialisasi dengan nama app khusus, misalnya "storageApp"
+const appStorage = admin.initializeApp(
+  {
+    credential: admin.credential.cert(serviceAccountFriend),
+    storageBucket: 'informasippdb-a32b5.appspot.com', // Ganti dengan bucket storage proyek teman
+  },
+  'storageApp',
+)
+
+// Ambil referensi ke RTDB dan Storage Bucket
+const database = appRTDB.database()
+const bucket = appStorage.storage().bucket()
+console.log('🔥 RTDB connected:', database.ref('/').toString())
+console.log('🔥 Storage bucket:', bucket.name)
+
+// ====================
+// Setup Express & Middleware
+// ====================
 const app = express()
 app.use(cors({ origin: '*' }))
+app.use(express.json())
 
 const upload = multer({ dest: 'uploads/' })
+
+// ====================
+// Bagian Konversi PDF
+// ====================
 
 // Fungsi untuk menjalankan Worker Thread
 function convertPdfParallel(pdfPath, outputPath, callback) {
@@ -36,19 +65,19 @@ function convertPdfParallel(pdfPath, outputPath, callback) {
   })
 
   worker.on('message', (message) => {
-    console.log(`✅ Worker finished conversion:`, message)
+    console.log('✅ Worker finished conversion:', message)
     callback(null, message)
   })
 
   worker.on('error', (error) => {
-    console.error(`❌ Worker error:`, error)
+    console.error('❌ Worker error:', error)
     callback(error, null)
   })
 }
 
 // Fungsi untuk mengunggah file dengan retry jika gagal
 async function uploadFileWithRetry(localFilePath, remoteFilePath) {
-  let maxRetries = 5 // Maksimum percobaan upload
+  let maxRetries = 5
   let attempt = 0
 
   while (attempt < maxRetries) {
@@ -57,29 +86,32 @@ async function uploadFileWithRetry(localFilePath, remoteFilePath) {
       await bucket.upload(localFilePath, { destination: remoteFilePath })
 
       const fileRef = bucket.file(remoteFilePath)
-      const [signedUrl] = await fileRef.getSignedUrl({ action: 'read', expires: '03-01-2030' })
+      const [signedUrl] = await fileRef.getSignedUrl({
+        action: 'read',
+        expires: '03-01-2030',
+      })
 
       console.log(`✅ Upload successful: ${localFilePath}`)
       return signedUrl
     } catch (uploadError) {
-      console.error(`❌ Upload failed: Retrying in 3 seconds...`, uploadError)
+      console.error('❌ Upload failed: Retrying in 3 seconds...', uploadError)
       attempt++
       await new Promise((resolve) => setTimeout(resolve, 3000))
     }
   }
 
   console.error(`🚨 Upload failed after ${maxRetries} attempts: ${localFilePath}`)
-  return null // Jika gagal total, return null
+  return null
 }
 
 // Fungsi untuk mengunggah file dalam batch
-async function uploadFilesInBatches(files, customName, batchSize = 50) {
+async function uploadFilesInBatches(files, customName, batchSize = 500) {
   const uploadedImages = []
   let batchCount = 0
 
   files.sort((a, b) => {
-    let numA = parseInt(a.match(/(\d+)\.jpg$/)?.[1] || '0', 10)
-    let numB = parseInt(b.match(/(\d+)\.jpg$/)?.[1] || '0', 10)
+    let numA = parseInt(a.match(/(\\d+)\\.jpg$/)?.[1] || '0', 10)
+    let numB = parseInt(b.match(/(\\d+)\\.jpg$/)?.[1] || '0', 10)
     return numA - numB
   })
 
@@ -90,7 +122,7 @@ async function uploadFilesInBatches(files, customName, batchSize = 50) {
     const batch = files.slice(i, i + batchSize)
     const uploadPromises = batch.map((file, index) => {
       const localFilePath = path.join('uploads', file)
-      const pageNumber = (i + index + 1).toString().padStart(4, '0') // kasi kan endog nek ngarep
+      const pageNumber = (i + index + 1).toString().padStart(4, '0')
       const remoteFilePath = `pdf-images/${customName}/page-${pageNumber}.jpg`
       return uploadFileWithRetry(localFilePath, remoteFilePath)
     })
@@ -131,27 +163,158 @@ app.post('/convert', upload.single('file'), async (req, res) => {
         return res.status(500).json({ error: 'No output generated.' })
       }
 
-      files.sort((a, b) => {
-        let numA = parseInt(a.match(/(\d+)\.jpg$/)?.[1] || '0', 10)
-        let numB = parseInt(b.match(/(\d+)\.jpg$/)?.[1] || '0', 10)
-        return numA - numB
-      })
-
       console.log(`📸 Found ${files.length} images to upload.`)
 
-      // Upload dalam batch (misalnya 20 file sekaligus)
-      const uploadedImages = await uploadFilesInBatches(files, customName, 50)
+      await uploadFilesInBatches(files, customName, 500)
 
       // Hapus file lokal setelah upload selesai
       files.forEach((file) => fs.unlinkSync(path.join('uploads', file)))
       fs.unlinkSync(pdfPath)
 
-      res.json({ images: uploadedImages })
-      console.log('🎉 Conversion & upload completed:')
+      // URL folder di Firebase Storage
+      const encodedFolderName = encodeURIComponent(`pdf-images/${customName}`)
+      const folderUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedFolderName}%2F`
+
+      res.json({ folderUrl })
+      console.log('🎉 Conversion & upload completed. Folder URL:', folderUrl)
     })
   } catch (error) {
     console.error('❌ Conversion error:', error)
     res.status(500).json({ error: error.message })
+  }
+})
+
+// Endpoint untuk mengupload cover buku
+app.post('/uploadCover', upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' })
+
+  const localFilePath = req.file.path
+  // Buat nama file remote, misalnya berdasarkan original name
+  const remoteFilePath = `book-covers/${req.file.originalname}`
+
+  try {
+    // Upload file cover ke Firebase Storage
+    await bucket.upload(localFilePath, { destination: remoteFilePath })
+
+    // Ambil URL file cover
+    const fileRef = bucket.file(remoteFilePath)
+    const [coverUrl] = await fileRef.getSignedUrl({
+      action: 'read',
+      expires: '03-01-2030',
+    })
+
+    // Hapus file lokal setelah upload selesai
+    fs.unlinkSync(localFilePath)
+
+    res.json({ coverUrl })
+    console.log('Cover uploaded. URL:', coverUrl)
+  } catch (error) {
+    console.error('Error uploading cover:', error)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// ====================
+// Endpoint CRUD Buku (RTDB)
+// ====================
+
+// Ambil semua buku dari RTDB
+app.get('/books', async (req, res) => {
+  try {
+    const snapshot = await database.ref('kategori').once('value')
+    if (!snapshot.exists()) {
+      return res.status(404).json({ message: 'Tidak ada buku.' })
+    }
+
+    const books = []
+    snapshot.forEach((kategoriSnap) => {
+      kategoriSnap.forEach((bookSnap) => {
+        books.push({
+          id: bookSnap.key,
+          kategori: kategoriSnap.key,
+          ...bookSnap.val(),
+        })
+      })
+    })
+
+    res.json(books)
+  } catch (error) {
+    res.status(500).json({
+      message: 'Gagal mengambil data buku.',
+      error: error.message,
+    })
+  }
+})
+
+// Tambah buku baru
+app.post('/books', async (req, res) => {
+  try {
+    const { judul, author, TanggalTerbit, kategori, stock, cover, pdf } = req.body
+
+    if (!judul || !author || !kategori || stock === undefined) {
+      return res.status(400).json({ message: 'Data tidak lengkap.' })
+    }
+
+    const sanitizedTitle = judul.trim().replace(/[.#$/[\]]/g, '')
+    const bookRef = database.ref(`kategori/${kategori}/${sanitizedTitle}`)
+
+    await bookRef.set({
+      judul,
+      author,
+      TanggalTerbit,
+      kategori,
+      stock,
+      ketersediaan: stock > 0,
+      cover: cover || '',
+      pdf: pdf || '',
+    })
+
+    res.status(201).json({ message: 'Buku berhasil ditambahkan.' })
+  } catch (error) {
+    res.status(500).json({
+      message: 'Gagal menambahkan buku.',
+      error: error.message,
+    })
+  }
+})
+
+// Update buku
+app.put('/books/:kategori/:id', async (req, res) => {
+  try {
+    const { kategori, id } = req.params
+    const { judul, author, TanggalTerbit, stock, cover, pdf } = req.body
+
+    const bookRef = database.ref(`kategori/${kategori}/${id}`)
+    await bookRef.update({
+      judul,
+      author,
+      TanggalTerbit,
+      stock,
+      ketersediaan: stock > 0,
+      cover: cover || '',
+      pdf: pdf || '',
+    })
+
+    res.json({ message: 'Buku berhasil diperbarui.' })
+  } catch (error) {
+    res.status(500).json({
+      message: 'Gagal memperbarui buku.',
+      error: error.message,
+    })
+  }
+})
+
+// Hapus buku
+app.delete('/books/:kategori/:id', async (req, res) => {
+  try {
+    const { kategori, id } = req.params
+    await database.ref(`kategori/${kategori}/${id}`).remove()
+    res.json({ message: 'Buku berhasil dihapus.' })
+  } catch (error) {
+    res.status(500).json({
+      message: 'Gagal menghapus buku.',
+      error: error.message,
+    })
   }
 })
 

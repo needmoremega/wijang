@@ -1,92 +1,99 @@
 <template>
-  <div class="p-4 sm:p-6 md:p-8">
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-2xl font-bold">Daftar Akun</h2>
-      <button @click="showModal = true" class="btn btn-success">Tambah User</button>
+  <div class="p-4 sm:p-6 md:p-8 text-base-content bg-base-100 min-h-screen">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-primary">Daftar Akun</h2>
+      <button @click="showModal = true" class="btn btn-success btn-md">Tambah User</button>
     </div>
-    <!-- notifikasi -->
-    <div v-if="showNotif" class="toast z-10 toast-top toast-center">
-      <div role="alert" class="alert" :class="notifikasi.tipe">
-        <span>{{ notifikasi.pesan }}.</span>
+
+    <!-- Notifikasi -->
+    <div v-if="showNotif" class="toast toast-top toast-center z-50">
+      <div role="alert" class="alert shadow-lg" :class="notifikasi.tipe">
+        <span class="font-medium">{{ notifikasi.pesan }}</span>
       </div>
     </div>
 
     <!-- Tabel user -->
-    <table v-if="paginatedBooks.length > 0" class="table w-full table-auto">
-      <thead class="bg-primary text-white text-center">
-        <tr>
-          <th>Nama</th>
-          <th>password</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody class="text-center bg-base-200">
-        <tr v-for="user in paginatedBooks" :key="user.id">
-          <td>{{ user.name }}</td>
-          <td>{{ user.password }}</td>
-          <td>
-            <button @click="editUser(user)" class="btn btn-primary btn-sm">Edit</button>
-            <button @click="deleteUser(user.id)" class="btn btn-danger btn-sm">Hapus</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="overflow-x-auto rounded-lg shadow-lg">
+      <table v-if="paginatedBooks.length > 0" class="table w-full table-zebra">
+        <thead class="bg-primary text-white text-center">
+          <tr>
+            <th class="py-3">Nama</th>
+            <th class="py-3">Password</th>
+            <th class="py-3">Aksi</th>
+          </tr>
+        </thead>
+        <tbody class="text-center bg-base-200">
+          <tr v-for="user in paginatedBooks" :key="user.id" class="hover:bg-base-300">
+            <td class="py-3">{{ user.name }}</td>
+            <td class="py-3">{{ user.password }}</td>
+            <td class="flex justify-center gap-3 py-3">
+              <button @click="editUser(user)" class="btn btn-primary btn-sm">Edit</button>
+              <button @click="deleteUser(user.id)" class="btn btn-error btn-sm">Hapus</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <!-- Bab bab an jir -->
-    <div v-if="paginatedBooks.length > 0" class="flex justify-center mt-4">
+    <!-- Navigasi Halaman -->
+    <div v-if="paginatedBooks.length > 0" class="flex justify-center mt-6 gap-4">
       <button
         @click="changePage('prev')"
         :disabled="currentPage === 1"
-        class="btn btn-sm btn-outline"
+        class="btn btn-outline btn-sm"
       >
-        Previous
+        ◀ Previous
       </button>
-      <span class="mx-2">Page {{ currentPage }} of {{ totalPages }}</span>
+      <span class="text-lg font-semibold">Page {{ currentPage }} of {{ totalPages }}</span>
       <button
         @click="changePage('next')"
         :disabled="currentPage === totalPages"
-        class="btn btn-sm btn-outline"
+        class="btn btn-outline btn-sm"
       >
-        Next
+        Next ▶
       </button>
     </div>
 
     <!-- Modal Tambah/Edit User -->
-    <div v-if="showModal" class="modal modal-open z-0">
-      <div class="modal-box max-w-5xl">
-        <h3 class="font-bold text-lg mb-4">{{ editMode ? 'Edit User' : 'Tambah User' }}</h3>
+    <div v-if="showModal" class="modal modal-open z-50">
+      <div class="modal-box max-w-xl rounded-lg shadow-xl">
+        <h3 class="font-bold text-xl mb-4 text-primary">
+          {{ editMode ? 'Edit User' : 'Tambah User' }}
+        </h3>
         <form @submit.prevent="editMode ? updateUser() : saveUser()">
           <div class="form-control mb-4">
             <label class="label">
-              <span class="label-text">Nama</span>
+              <span class="label-text font-semibold">Nama</span>
             </label>
             <input
               v-model="newUser.name"
               type="text"
               placeholder="Nama User"
-              class="input input-bordered"
+              class="input input-bordered w-full"
               :class="{ 'border-red-500': errorFields.name }"
             />
           </div>
           <div class="form-control mb-4">
             <label class="label">
-              <span class="label-text">Email</span>
+              <span class="label-text font-semibold">Password</span>
             </label>
             <input
               v-model="newUser.password"
               type="password"
-              placeholder="Email User"
-              class="input input-bordered"
+              placeholder="Password User"
+              class="input input-bordered w-full"
               :class="{ 'border-red-500': errorFields.password }"
             />
           </div>
-          <div class="modal-action">
-            <button type="button" class="btn" @click="closeModal">Batal</button>
+          <div class="modal-action flex justify-end gap-2">
+            <button type="button" class="btn btn-outline" @click="closeModal">Batal</button>
             <button type="submit" class="btn btn-primary">Simpan</button>
           </div>
         </form>
       </div>
     </div>
+
+    <!-- Konfirmasi Popup -->
     <KonfirmasiPopup
       :isVisible="showConfirmModal"
       :message="confirmMessage"

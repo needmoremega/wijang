@@ -20,10 +20,15 @@ const routes = [
         name: 'Jelajahi',
         component: JelajahiPage,
       },
+      {
+        path: '/pustaka',
+        name: 'Pustaka',
+        component: () => import('@/views/userView/PustakaUser.vue'),
+      },
     ],
   },
   { path: '/logreg', name: 'LoginRegister', component: LRPAge },
-  { path: '/baca/', component: () => import('@/views/userView/BacaBuku.vue') },
+  { path: '/baca/:id', component: () => import('@/views/userView/BacaBuku.vue') },
   {
     path: '/buku/:kategori/:id',
     name: 'Buku',

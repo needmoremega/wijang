@@ -38,7 +38,6 @@
           </div>
         </div>
       </div>
-      <PdfToImage />
 
       <div class="card mt-10">
         <h2 class="text-2xl">Terbaru</h2>
@@ -50,7 +49,6 @@
 <script setup>
 import SwiperUser from '@/components/user/SwiperUser.vue'
 import { useRouter } from 'vue-router'
-import PdfToImage from '@/components/user/PdfToImage.vue'
 const router = useRouter()
 console.log(import.meta.env.VITE_FIREBASE_API_KEY)
 

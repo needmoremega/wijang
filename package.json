@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.16",
+    "axios": "^1.8.4",
     "firebase": "^11.1.0",
     "pdf-poppler": "^0.2.1",
     "pdfjs-dist": "^4.10.38",
