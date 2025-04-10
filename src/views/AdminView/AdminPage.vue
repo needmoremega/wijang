@@ -1,23 +1,29 @@
 <template>
-  <div class="flex h-screen overflow-hidden">
+  <div class="flex min-h-screen w-full">
     <!-- Sidebar -->
     <AdminSidebar
-      :class="{ 'hidden md:block': !isSidebarOpen }"
-      class="fixed md:static h-screen overflow-hidden"
+      class="h-screen w-64 fixed z-40 md:static"
+      :sidebarOpen="sidebarOpen"
+      :closeSidebar="closeSidebar"
     />
 
+    <!-- Overlay (mobile) -->
     <div
-      class="flex-1 flex flex-col h-screen overflow-hidden transition-all duration-300"
-      :class="{ 'ml-12': isSidebarOpen, 'ml-0': !isSidebarOpen }"
-    >
-      <!-- Toggle Button -->
-      <button @click="toggleSidebar" class="btn btn-primary md:hidden ml-4 mt-4">
-        {{ isSidebarOpen ? 'Tutup Menu' : 'Buka Menu' }}
+      v-if="sidebarOpen"
+      class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+      @click="closeSidebar"
+    ></div>
+
+    <!-- Konten Utama -->
+    <div class="flex flex-col flex-1 w-full min-h-screen ml-0">
+      <!-- Tombol Toggle Mobile -->
+      <button @click="toggleSidebar" class="btn btn-primary fixed top-4 left-4 z-30 md:hidden">
+        ☰ Menu
       </button>
 
-      <!-- Main Content -->
-      <div class="flex-1 overflow-auto">
-        <router-view class="bg-base-300 rounded-lg mx-2 my-4 min-h-full" />
+      <!-- Router View -->
+      <div class="flex-1 overflow-y-auto mt-16 md:mt-0 p-4">
+        <RouterView />
       </div>
     </div>
   </div>
@@ -27,22 +33,12 @@
 import { ref } from 'vue'
 import AdminSidebar from '@/components/AdminSidebar.vue'
 
-const isSidebarOpen = ref(false)
+const sidebarOpen = ref(false)
 
 const toggleSidebar = () => {
-  isSidebarOpen.value = !isSidebarOpen.value
+  sidebarOpen.value = !sidebarOpen.value
+}
+const closeSidebar = () => {
+  sidebarOpen.value = false
 }
 </script>
-
-<style>
-/* Pastikan sidebar tidak menimpa konten di layar kecil */
-@media (max-width: 768px) {
-  .fixed {
-    position: absolute;
-    width: 12rem; /* Sesuaikan dengan lebar sidebar */
-    height: 100vh;
-    background: var(--fallback-b1, #1e293b); /* Warna base dari DaisyUI */
-    z-index: 50;
-  }
-}
-</style>

@@ -221,13 +221,16 @@ const PinjamBuku = () => {
   const DataPinjaman = {
     username: usernameUser,
     judul: book.value.judul,
+
+    isiBuku: book.value,
+
     kategori: book.value.kategori,
     WaktuPinjam: new Date().toLocaleString(),
-    // Contoh: waktu kembali 7 hari ke depan
     WaktuKembali: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleString(),
     DiPinjam: true,
     Pdf: book.value.pdf || 'https://www.google.com/',
   }
+
   const SimpanKeDatabase = dbRef(database, `pinjaman/`)
   push(SimpanKeDatabase, DataPinjaman)
     .then(() => {

@@ -1,32 +1,33 @@
 <template>
-  <div class="p-4 sm:p-6 md:p-8 text-base-content bg-base-100 min-h-screen">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-primary">Daftar Akun</h2>
-      <button @click="showModal = true" class="btn btn-success btn-md">Tambah User</button>
+  <div class="p-4 sm:p-6 md:p-8 text-gray-900 dark:text-gray-200">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold">Daftar Akun</h2>
+      <button @click="showModal = true" class="btn btn-success">Tambah User</button>
     </div>
 
     <!-- Notifikasi -->
-    <div v-if="showNotif" class="toast toast-top toast-center z-50">
-      <div role="alert" class="alert shadow-lg" :class="notifikasi.tipe">
-        <span class="font-medium">{{ notifikasi.pesan }}</span>
+    <div v-if="showNotif" class="toast toast-top toast-end">
+      <div role="alert" class="alert" :class="notifikasi.tipe">
+        <span>{{ notifikasi.pesan }}</span>
       </div>
     </div>
 
-    <!-- Tabel user -->
-    <div class="overflow-x-auto rounded-lg shadow-lg">
+    <!-- Tabel User -->
+    <div class="overflow-x-auto">
       <table v-if="paginatedBooks.length > 0" class="table w-full table-zebra">
-        <thead class="bg-primary text-white text-center">
-          <tr>
-            <th class="py-3">Nama</th>
-            <th class="py-3">Password</th>
-            <th class="py-3">Aksi</th>
+        <thead>
+          <tr class="bg-gray-800 text-white text-center">
+            <th>Nama</th>
+            <th>Password</th>
+            <th>Aksi</th>
           </tr>
         </thead>
-        <tbody class="text-center bg-base-200">
-          <tr v-for="user in paginatedBooks" :key="user.id" class="hover:bg-base-300">
-            <td class="py-3">{{ user.name }}</td>
-            <td class="py-3">{{ user.password }}</td>
-            <td class="flex justify-center gap-3 py-3">
+        <tbody class="text-center bg-gray-900">
+          <tr v-for="user in paginatedBooks" :key="user.id">
+            <td>{{ user.name }}</td>
+            <td>{{ user.password }}</td>
+            <td class="flex justify-center gap-2">
               <button @click="editUser(user)" class="btn btn-primary btn-sm">Edit</button>
               <button @click="deleteUser(user.id)" class="btn btn-error btn-sm">Hapus</button>
             </td>
@@ -35,71 +36,70 @@
       </table>
     </div>
 
-    <!-- Navigasi Halaman -->
-    <div v-if="paginatedBooks.length > 0" class="flex justify-center mt-6 gap-4">
-      <button
-        @click="changePage('prev')"
-        :disabled="currentPage === 1"
-        class="btn btn-outline btn-sm"
-      >
-        ◀ Previous
+    <!-- Pagination -->
+    <div v-if="paginatedBooks.length > 0" class="flex justify-center mt-4 space-x-4">
+      <button @click="changePage('prev')" :disabled="currentPage === 1" class="btn btn-outline">
+        Previous
       </button>
-      <span class="text-lg font-semibold">Page {{ currentPage }} of {{ totalPages }}</span>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
       <button
         @click="changePage('next')"
         :disabled="currentPage === totalPages"
-        class="btn btn-outline btn-sm"
+        class="btn btn-outline"
       >
-        Next ▶
+        Next
       </button>
     </div>
 
     <!-- Modal Tambah/Edit User -->
-    <div v-if="showModal" class="modal modal-open z-50">
-      <div class="modal-box max-w-xl rounded-lg shadow-xl">
-        <h3 class="font-bold text-xl mb-4 text-primary">
+    <div
+      v-if="showModal"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4"
+    >
+      <div class="modal-box max-w-xl p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
+        <h3 class="font-bold text-xl mb-4 text-center">
           {{ editMode ? 'Edit User' : 'Tambah User' }}
         </h3>
-        <form @submit.prevent="editMode ? updateUser() : saveUser()">
-          <div class="form-control mb-4">
-            <label class="label">
-              <span class="label-text font-semibold">Nama</span>
-            </label>
+        <form @submit.prevent="editMode ? updateUser() : saveUser()" class="space-y-4">
+          <div class="form-control">
+            <label class="label">Nama</label>
             <input
               v-model="newUser.name"
               type="text"
-              placeholder="Nama User"
-              class="input input-bordered w-full"
+              class="input input-bordered dark:bg-gray-700"
               :class="{ 'border-red-500': errorFields.name }"
             />
           </div>
-          <div class="form-control mb-4">
-            <label class="label">
-              <span class="label-text font-semibold">Password</span>
-            </label>
+          <div class="form-control">
+            <label class="label">Password</label>
             <input
               v-model="newUser.password"
               type="password"
-              placeholder="Password User"
-              class="input input-bordered w-full"
+              class="input input-bordered dark:bg-gray-700"
               :class="{ 'border-red-500': errorFields.password }"
             />
           </div>
-          <div class="modal-action flex justify-end gap-2">
-            <button type="button" class="btn btn-outline" @click="closeModal">Batal</button>
+          <div class="modal-action flex justify-between">
+            <button type="button" class="btn btn-ghost" @click="closeModal">Batal</button>
             <button type="submit" class="btn btn-primary">Simpan</button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Konfirmasi Popup -->
-    <KonfirmasiPopup
-      :isVisible="showConfirmModal"
-      :message="confirmMessage"
-      @confirm="executeConfirmAction"
-      @cancel="closeConfirmModal"
-    />
+    <!-- Konfirmasi Modal -->
+    <div
+      v-if="showConfirmModal"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4"
+    >
+      <div class="modal-box max-w-md p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
+        <p class="text-lg text-center">{{ confirmMessage }}</p>
+        <div class="modal-action flex justify-between mt-4">
+          <button class="btn" @click="closeConfirmModal">Batal</button>
+          <button class="btn btn-error" @click="executeConfirmAction">Ya</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 

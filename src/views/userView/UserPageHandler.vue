@@ -2,7 +2,7 @@
   <div class="flex flex-col min-h-screen w-full">
     <NavbarUser :userRole="userRole" class="z-20" />
     <main class="flex-grow w-full px-4 sm:px-6 md:px-8">
-      <RouterView v-if="!loading" />
+      <RouterView :userId="userId" v-if="!loading" />
       <div v-else class="flex justify-center items-center h-screen">
         <span class="loading loading-spinner text-primary"></span>
       </div>

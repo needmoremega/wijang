@@ -52,6 +52,7 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 console.log(import.meta.env.VITE_FIREBASE_API_KEY)
 
+
 const logout = () => {
   localStorage.clear()
   router.push('/logreg')

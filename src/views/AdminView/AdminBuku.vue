@@ -1,20 +1,36 @@
 <template>
   <div class="p-4 sm:p-6 md:p-8 text-gray-900 dark:text-gray-200">
     <!-- Header -->
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
       <h2 class="text-2xl font-bold">Daftar Buku</h2>
-      <button @click="openModal" class="btn btn-success">Tambah Buku</button>
+      <button @click="openModal" class="btn btn-success btn-sm flex items-center gap-2 h-">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M12 4v16m8-8H4"
+          />
+        </svg>
+        Tambah Buku
+      </button>
     </div>
 
     <!-- Tampilan Loading/No Data -->
     <div v-if="isLoading" class="text-center text-lg">Loading...</div>
     <div v-else-if="NoData" class="text-center text-lg">Tidak ada buku.</div>
 
-    <!-- Tabel Buku -->
-    <div class="overflow-x-auto">
-      <table v-if="!isLoading && books.length > 0" class="table w-full table-zebra">
+    <!-- Tabel Buku (Scrollable) -->
+    <div class="w-full overflow-x-auto">
+      <table v-if="!isLoading && books.length > 0" class="min-w-[800px] table table-zebra">
         <thead>
-          <tr class="bg-gray-800 text-white text-center">
+          <tr class="bg-gray-800 text-white text-center text-sm">
             <th>Judul</th>
             <th>Penulis</th>
             <th>Tanggal Terbit</th>
@@ -24,7 +40,7 @@
             <th>Aksi</th>
           </tr>
         </thead>
-        <tbody class="text-center bg-gray-900">
+        <tbody class="text-center bg-gray-900 text-sm">
           <tr v-for="book in paginatedBooks" :key="book.id">
             <td>{{ book.judul }}</td>
             <td>{{ book.author }}</td>
@@ -39,11 +55,80 @@
                 class="w-16 mx-auto rounded-md shadow-md"
               />
             </td>
-            <td>
-              <button @click="editBuku(book)" class="btn btn-primary btn-sm mx-1">Edit</button>
-              <button @click="deleteBook(book.id, book.kategori)" class="btn btn-error btn-sm">
-                Hapus
-              </button>
+            <td class="flex justify-center items-center gap-2">
+              <div class="flex gap-2">
+                <!-- Tombol Lihat -->
+                <button
+                  @click="viewBook(book)"
+                  class="btn btn-sm btn-outline btn-info tooltip"
+                  data-tip="Lihat"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </button>
+
+                <!-- Tombol Edit -->
+                <button
+                  @click="editBuku(book)"
+                  class="btn btn-sm btn-outline btn-warning tooltip"
+                  data-tip="Edit"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5h2m-1 0v14m4-10h4m-4 4h4m-4 4h4m-4-12h4"
+                    />
+                  </svg>
+                </button>
+
+                <!-- Tombol Hapus -->
+                <button
+                  @click="deleteBook(book)"
+                  class="btn btn-sm btn-outline btn-error tooltip"
+                  data-tip="Hapus"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -51,7 +136,10 @@
     </div>
 
     <!-- Pagination -->
-    <div v-if="books.length > 0" class="flex justify-center mt-4 space-x-4">
+    <div
+      v-if="books.length > 0"
+      class="flex flex-wrap justify-center items-center mt-4 space-y-2 sm:space-y-0 sm:space-x-4"
+    >
       <button @click="changePage('prev')" :disabled="currentPage === 1" class="btn btn-outline">
         Previous
       </button>
@@ -68,9 +156,9 @@
     <!-- Modal Tambah/Edit Buku -->
     <div
       v-if="showModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-50"
     >
-      <div class="modal-box max-w-3xl p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
+      <div class="modal-box w-full max-w-3xl p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
         <h3 class="font-bold text-xl mb-4 text-center">
           {{ editMode ? 'Edit Buku' : 'Tambah Buku' }}
         </h3>
@@ -132,7 +220,7 @@
               class="file-input file-input-bordered dark:bg-gray-700"
             />
           </div>
-          <div class="modal-action flex justify-between">
+          <div class="modal-action flex justify-between flex-col sm:flex-row gap-2">
             <button type="button" class="btn btn-ghost" @click="closeModal">Batal</button>
             <button type="submit" class="btn btn-primary">
               {{ editMode ? 'Update' : 'Simpan' }}
@@ -141,12 +229,13 @@
         </form>
       </div>
     </div>
+
     <!-- Modal Konfirmasi -->
     <div
       v-if="showConfirmModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-50"
     >
-      <div class="modal-box max-w-md p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
+      <div class="modal-box w-full max-w-md p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
         <p class="text-lg text-center">{{ confirmMessage }}</p>
         <div class="modal-action flex justify-between mt-4">
           <button class="btn" @click="closeConfirmModal">Batal</button>
@@ -156,7 +245,7 @@
     </div>
 
     <!-- Notifikasi Toast -->
-    <div v-if="showNotif" class="toast toast-top toast-end">
+    <div v-if="showNotif" class="toast toast-top toast-end z-50">
       <div class="alert" :class="notifikasi.tipe">
         <span>{{ notifikasi.pesan }}</span>
       </div>
@@ -456,9 +545,11 @@ const saveBook = async () => {
 /* ---------------------------
    Fungsi Edit Buku
 ---------------------------- */
+const BukuAwal = ref(null)
 const editBuku = (book) => {
   editMode.value = true
   newBook.value = { ...book }
+  BukuAwal.value = { ...book } // Simpan salinan asli
   showModal.value = true
 }
 
@@ -466,7 +557,6 @@ const editBuku = (book) => {
    Fungsi Update Buku (dipanggil oleh form submit jika editMode true)
 ---------------------------- */
 const updateBuku = async () => {
-  // Validasi sederhana
   if (
     !newBook.value.judul.trim() ||
     !newBook.value.author.trim() ||
@@ -477,6 +567,21 @@ const updateBuku = async () => {
     showNotifikasi('Harap lengkapi semua field yang diperlukan', 'alert-warning')
     return
   }
+
+  // Cek apakah ada perubahan
+  const isSame =
+    newBook.value.judul === BukuAwal.value.judul &&
+    newBook.value.author === BukuAwal.value.author &&
+    newBook.value.kategori === BukuAwal.value.kategori &&
+    newBook.value.stock === BukuAwal.value.stock &&
+    newBook.value.cover === BukuAwal.value.cover &&
+    newBook.value.pdf === BukuAwal.value.pdf
+
+  if (isSame && !pdfEventData) {
+    showNotifikasi('Tidak ada data yang diubah', 'alert-info')
+    return
+  }
+
   openConfirmModal('Apakah Anda yakin ingin memperbarui buku ini?', async () => {
     // Jika ada file PDF baru yang diupload, proses upload terlebih dahulu
     newBook.value.TanggalTerbit = new Date().toLocaleString('id-ID', {

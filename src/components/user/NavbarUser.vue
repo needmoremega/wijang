@@ -46,6 +46,15 @@
             Buku
           </router-link>
         </li>
+        <li>
+          <router-link
+            :to="{ name: 'Pustaka' }"
+            class="hover:text-primary transition-colors duration-300"
+            exact-active-class="text-blue-500 font-bold"
+          >
+            Pustaka
+          </router-link>
+        </li>
         <li v-if="userRole && userRole.toLowerCase() === 'admin'">
           <router-link
             :to="'/admin'"

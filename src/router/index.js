@@ -10,16 +10,23 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
+    // common non non
     path: '/',
     component: UserPageHandler,
     meta: { requiresAuth: true },
     children: [
+      // halaman utama
+
       { path: '/', name: 'Home', component: HomePage },
+
+      // halaman explore
       {
         path: '/jelajahi',
         name: 'Jelajahi',
         component: JelajahiPage,
       },
+
+      // Halaman berisi buku yang sudah di pinjam
       {
         path: '/pustaka',
         name: 'Pustaka',
@@ -27,13 +34,21 @@ const routes = [
       },
     ],
   },
+
+  // path untuk login dan register
   { path: '/logreg', name: 'LoginRegister', component: LRPAge },
+
+  // path untuk baca buku
   { path: '/baca/:id', component: () => import('@/views/userView/BacaBuku.vue') },
+
+  // path untuk detail buku
   {
     path: '/buku/:kategori/:id',
     name: 'Buku',
     component: () => import('@/views/userView/DetailBuku.vue'),
   },
+
+  // admin router
   {
     path: '/admin',
     name: 'Admin',

@@ -15,19 +15,21 @@ const __dirname = path.dirname(__filename)
 // Inisialisasi Firebase
 // ====================
 
-//untuk RTDB
+// Proyek pertama: "wijang" untuk RTDB
 const serviceAccountWijang = JSON.parse(
-  fs.readFileSync(path.join(__dirname, 'wijang1-firebase-private-key.json'), 'utf8'),
+  await fs.promises.readFile(path.join(__dirname, 'wijang1-firebase-private-key.json'), 'utf8'),
 )
+
 const appRTDB = admin.initializeApp({
   credential: admin.credential.cert(serviceAccountWijang),
   databaseURL: 'https://wijang1-default-rtdb.asia-southeast1.firebasedatabase.app/', // Ganti dengan URL RTDB proyek "wijang"
 })
 
-// service account dari teman untuk Storage
+// Proyek kedua: Misal file service account dari teman untuk Storage
 const serviceAccountFriend = JSON.parse(
-  fs.readFileSync(path.join(__dirname, 'informasippdb-a32b5-firebase.json'), 'utf8'),
+  await fs.promises.readFile(path.join(__dirname, 'informasippdb.json'), 'utf8'),
 )
+// Inisialisasi dengan nama app khusus, misalnya "storageApp"
 const appStorage = admin.initializeApp(
   {
     credential: admin.credential.cert(serviceAccountFriend),
@@ -304,11 +306,40 @@ app.put('/books/:kategori/:id', async (req, res) => {
 })
 
 // Hapus buku
+
 app.delete('/books/:kategori/:id', async (req, res) => {
   try {
     const { kategori, id } = req.params
+
+    // 1. Ambil data buku untuk tahu lokasi file PDF dan cover
+    const bookSnapshot = await database.ref(`kategori/${kategori}/${id}`).once('value')
+    const bookData = bookSnapshot.val()
+
+    if (!bookData) {
+      return res.status(404).json({ message: 'Buku tidak ditemukan.' })
+    }
+    const folderName = `pdf-images/${bookData.judul}/`
+    const [files] = await bucket.getFiles({ prefix: folderName })
+
+    for (const file of files) {
+      await file.delete().catch((err) => {
+        console.warn(`Gagal hapus ${file.name}:`, err.message)
+      })
+    }
+    // Hapus PDF jika ada
+    if (bookData.pdf) {
+      await bucket
+        .file(bookData.pdf)
+        .delete()
+        .catch((err) => {
+          console.warn('Gagal hapus PDF:', err.message)
+        })
+    }
+
+    // 3. Hapus data dari Realtime Database
     await database.ref(`kategori/${kategori}/${id}`).remove()
-    res.json({ message: 'Buku berhasil dihapus.' })
+
+    res.json({ message: 'Buku berhasil dihapus beserta file di Storage.' })
   } catch (error) {
     res.status(500).json({
       message: 'Gagal menghapus buku.',
