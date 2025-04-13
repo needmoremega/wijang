@@ -95,7 +95,13 @@
                     </svg>
                     {{ teksBtnPinjamBaca }}
                   </button>
-                  <button class="btn btn-lg btn-outline">Bookmark</button>
+                  <button
+                    @click="toggleBookmark"
+                    class="btn btn-lg"
+                    :class="sudahBookmark ? 'btn-secondary' : 'btn-outline'"
+                  >
+                    {{ sudahBookmark ? 'Bookmarked' : 'Bookmark' }}
+                  </button>
                 </div>
 
                 <!-- Statistik -->
@@ -163,7 +169,7 @@ import FotterUser from '@/components/user/FotterUser.vue'
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { database } from '@/firebase'
-import { ref as dbRef, get, push } from 'firebase/database'
+import { ref as dbRef, get, push, remove } from 'firebase/database'
 
 const route = useRoute()
 const router = useRouter()
@@ -185,10 +191,28 @@ onMounted(async () => {
     book.value = snapshot.val()
     // Setelah buku dimuat, cek apakah user sudah pernah meminjam buku ini
     await checkPinjaman(book.value.judul)
+    await cekBookmark()
   } else {
     console.error('Buku tidak ditemukan')
   }
 })
+
+const sudahBookmark = ref(false)
+const cekBookmark = async () => {
+  const bookmarkRef = dbRef(database, `user/${usernameUser}/bookmark`)
+  try {
+    const snapshot = await get(bookmarkRef)
+    if (snapshot.exists()) {
+      const bookmarks = snapshot.val()
+      const exists = Object.values(bookmarks).some(
+        (item) => item.id === route.params.id, // atau bandingkan dengan item.judul === book.value.judul
+      )
+      sudahBookmark.value = exists
+    }
+  } catch (error) {
+    console.error('Gagal cek bookmark:', error)
+  }
+}
 
 // Ambil data user dari localStorage
 const user = JSON.parse(localStorage.getItem('user'))
@@ -218,6 +242,15 @@ const checkPinjaman = async (judulBuku) => {
 
 // Fungsi untuk meminjam buku
 const PinjamBuku = () => {
+  // update(dbRef(database, `kategori/${category.value}/${book.value.judul}`), {
+  //   stock: book.value.stock - 1,
+  // })
+  //   .then(() => {
+  //     console.log('Stock buku berhasil diperbarui!')
+  //   })
+  //   .catch((error) => {
+  //     console.error('Error memperbarui stock buku: ', error)
+  //   })
   const DataPinjaman = {
     username: usernameUser,
     judul: book.value.judul,
@@ -247,6 +280,42 @@ const PinjamBuku = () => {
 const BacaBuku = () => {
   // Alihkan ke halaman baca buku yang menampilkan gambar dari Firebase Storage
   router.push(`/baca/${route.params.id}`)
+}
+
+// Fungsi untuk  bookmark
+const toggleBookmark = async () => {
+  const bookmarkRef = dbRef(database, `user/${usernameUser}/bookmark`)
+  try {
+    const snapshot = await get(bookmarkRef)
+    if (snapshot.exists()) {
+      const bookmarks = snapshot.val()
+      const bookmarkKey = Object.keys(bookmarks).find(
+        (key) => bookmarks[key].id === route.params.id,
+      )
+
+      // Jika sudah dibookmark → hapus
+      if (bookmarkKey) {
+        const bookmarkToDeleteRef = dbRef(database, `user/${usernameUser}/bookmark/${bookmarkKey}`)
+        await remove(bookmarkToDeleteRef)
+        sudahBookmark.value = false
+        alert('Bookmark dihapus!')
+        return
+      }
+    }
+
+    // Jika belum dibookmark → tambahkan
+    const newBookmark = {
+      judul: book.value.judul,
+      cover: book.value.cover,
+      kategori: book.value.kategori,
+      id: route.params.id,
+    }
+    await push(bookmarkRef, newBookmark)
+    sudahBookmark.value = true
+    alert('Bookmark ditambahkan!')
+  } catch (error) {
+    console.error('Gagal toggle bookmark:', error)
+  }
 }
 </script>
 

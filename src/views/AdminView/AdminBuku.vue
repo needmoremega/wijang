@@ -23,8 +23,8 @@
     </div>
 
     <!-- Tampilan Loading/No Data -->
-    <div v-if="isLoading" class="text-center text-lg">Loading...</div>
-    <div v-else-if="NoData" class="text-center text-lg">Tidak ada buku.</div>
+    <div v-if="isLoading" class="text-center text-lg"><LoadingPage /></div>
+    <div v-else-if="NoData" class="text-center text-lg"><BukuGakAda /></div>
 
     <!-- Tabel Buku (Scrollable) -->
     <div class="w-full overflow-x-auto">
@@ -256,6 +256,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
+import BukuGakAda from '@/components/universal/BukuGakAda.vue'
+import LoadingPage from '@/components/universal/LoadingPage.vue'
 
 /* ---------------------------
    Variabel dan State

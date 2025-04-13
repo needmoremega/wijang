@@ -22,9 +22,9 @@ const toggleForm = () => {
     >
       <div class="flex justify-center mb-4">
         <img
-          src="/src/assets/gibrna.jpg"
+          src="/src/assets/icon.png"
           alt="Icon"
-          class="w-24 h-24 object-cover rounded-full shadow-lg transition-transform duration-300 hover:scale-105"
+          class="w-24 h-24 object-cover rounded-full shadow-lg"
         />
       </div>
 

@@ -22,7 +22,7 @@
       </button>
 
       <!-- Router View -->
-      <div class="flex-1 overflow-y-auto mt-16 md:mt-0 p-4">
+      <div class="max-h-screen flex-1 overflow-y-auto mt-16 md:mt-0 p-4">
         <RouterView />
       </div>
     </div>

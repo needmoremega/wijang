@@ -101,7 +101,11 @@
           tabindex="0"
           class="menu menu-lg dropdown-content bg-base-100 rounded-box z-20 mt-3 w-52 p-2 shadow-md border border-gray-300"
         >
-          <li><a class="justify-between hover:bg-gray-100 transition">Profile</a></li>
+          <li>
+            <a class="justify-between hover:bg-gray-100 transition" @click="router.push('/profile')"
+              >Profile</a
+            >
+          </li>
           <li>
             <a class="text-error font-bold hover:bg-red-100 transition" @click="logout">Logout</a>
           </li>

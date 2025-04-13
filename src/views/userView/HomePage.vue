@@ -4,7 +4,6 @@
     <div class="p-7">
       <h1 class="text-2xl font-bold">Welcome to the Home Page</h1>
       <p>Ini di Homepage view.</p>
-      <button @click="logout" class="btn btn-active btn-secondary">logout</button>
       <div class="card mt-10">
         <h2 class="text-2xl text-center">Kategori</h2>
         <section>kerne</section>
@@ -39,6 +38,7 @@
         </div>
       </div>
 
+      <ErorPage />
       <div class="card mt-10">
         <h2 class="text-2xl">Terbaru</h2>
         <section>kerne</section>
@@ -47,14 +47,7 @@
   </div>
 </template>
 <script setup>
+ErorPage
+import ErorPage from '@/components/universal/ErorPage.vue'
 import SwiperUser from '@/components/user/SwiperUser.vue'
-import { useRouter } from 'vue-router'
-const router = useRouter()
-console.log(import.meta.env.VITE_FIREBASE_API_KEY)
-
-
-const logout = () => {
-  localStorage.clear()
-  router.push('/logreg')
-}
 </script>

@@ -1,3 +1,4 @@
+import ErorPage from '@/components/universal/ErorPage.vue'
 import AdminBuku from '@/views/AdminView/AdminBuku.vue'
 import AdminDashboard from '@/views/AdminView/AdminDashboard.vue'
 import AdminPage from '@/views/AdminView/AdminPage.vue'
@@ -9,6 +10,13 @@ import UserPageHandler from '@/views/userView/UserPageHandler.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
+  // 404 not found path
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: ErorPage }, // ⛔ Route 404
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/views/userView/ProfilePage.vue'),
+  },
   {
     // common non non
     path: '/',

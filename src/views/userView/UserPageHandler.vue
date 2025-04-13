@@ -4,7 +4,7 @@
     <main class="flex-grow w-full px-4 sm:px-6 md:px-8">
       <RouterView :userId="userId" v-if="!loading" />
       <div v-else class="flex justify-center items-center h-screen">
-        <span class="loading loading-spinner text-primary"></span>
+        <span class="loading loading-infinity w-16 h-16 text-primary"></span>
       </div>
     </main>
     <FotterUser class="mt-auto w-full p-2 sm:p-4" />
