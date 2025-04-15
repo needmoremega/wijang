@@ -1,7 +1,6 @@
 <template>
   <div class="container mx-auto p-4">
     <!-- Tombol Filter untuk Mobile -->
-
     <div class="md:hidden flex justify-between items-center mb-4">
       <h2 class="text-lg font-semibold">Book List</h2>
       <button @click="showFilters = !showFilters" class="btn btn-sm btn-outline">
@@ -16,6 +15,7 @@
           '-ms-[1.3rem] bg-base-200 p-4 rounded-lg shadow transition-all duration-300 opacity-100 md:opacity-100',
           showFilters ? 'block' : 'hidden md:block',
         ]"
+        class="max-h-[calc(100vh-10rem)] overflow-y-auto scrollbar-hide"
       >
         <h3 class="font-semibold mb-2 text-lg">Search</h3>
         <input
@@ -25,35 +25,33 @@
           class="input input-bordered w-full mb-4"
         />
 
-        <h3 class="font-semibold mb-2 text-lg">Categories</h3>
-
-        <!-- Skeleton Loader Saat Loading -->
+        <h3 class="font-semibold mb-2 text-lg">Kategori</h3>
         <div v-if="isLoading" class="space-y-2">
           <div v-for="n in 5" :key="n" class="h-4 w-3/4 bg-gray-700 rounded animate-pulse"></div>
         </div>
-
-        <div v-else>
-          <div v-for="category in categories" :key="category">
-            <label class="flex items-center gap-2 cursor-pointer">
+        <div v-else class="overflow-x-auto whitespace-nowrap pb-2">
+          <div class="inline-grid grid-flow-col gap-2">
+            <label
+              v-for="category in categories"
+              :key="category"
+              class="btn btn-sm btn-outline cursor-pointer"
+            >
               <input
                 type="checkbox"
                 v-model="selectedCategories"
                 :value="category"
-                class="checkbox checkbox-primary"
+                class="hidden"
               />
               {{ category }}
             </label>
           </div>
         </div>
 
-        <h3 class="font-semibold mt-4 mb-2 text-lg">Availability</h3>
-
-        <!-- Skeleton Loader untuk Availability Checkbox -->
+        <h3 class="font-semibold mt-4 mb-2 text-lg">Ketersediaan</h3>
         <div v-if="isLoading" class="h-4 w-1/2 bg-gray-700 rounded animate-pulse"></div>
-
         <label v-else class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" v-model="isAvailable" class="checkbox checkbox-success" />
-          Available
+          tersedia
         </label>
       </aside>
 
@@ -104,7 +102,6 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { database } from '@/firebase'
@@ -162,9 +159,18 @@ const filteredBooks = computed(() => {
   })
 })
 </script>
-
 <style scoped>
-/* Hover effect for smooth transitions */
+/* Hide scrollbar for Chrome, Safari, and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
 .card:hover {
   transform: translateY(-2px);
 }

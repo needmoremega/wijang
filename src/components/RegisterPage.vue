@@ -78,7 +78,7 @@
     </div>
   </form>
 
-  <!-- Toast (Top Center) -->
+  <!-- Toast -->
   <div v-if="showToast" class="toast fixed top-4 left-1/2 z-50" style="transform: translateX(-50%)">
     <div class="alert alert-info toast-content bg-blue-500 dark:bg-blue-700 text-white">
       <span>{{ errorMessage }}</span>
@@ -96,10 +96,21 @@ const newUser = ref({
   password: '',
   confirmPassword: '',
 })
+
 const errorMessage = ref('')
 const showToast = ref(false)
 const loading = ref(false)
 const router = useRouter()
+
+// Fungsi hashing SHA-256
+async function hashPassword(password) {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+  return hashHex
+}
 
 // Fungsi untuk menampilkan toast
 const Pesan = (isiPesan) => {
@@ -113,6 +124,16 @@ const Pesan = (isiPesan) => {
 const register = async () => {
   const { username, password, confirmPassword } = newUser.value
 
+  if (username.length < 3) {
+    Pesan('Username minimal 3 karakter')
+    return
+  }
+
+  if (password.length < 6) {
+    Pesan('Password minimal 6 karakter')
+    return
+  }
+
   if (password !== confirmPassword) {
     Pesan('Password dan konfirmasi password tidak cocok')
     return
@@ -122,20 +143,23 @@ const register = async () => {
 
   try {
     const userRef = dbRef(database, `user/${username}`)
-
-    // Cek apakah username sudah ada
     const snapshot = await get(userRef)
+
     if (snapshot.exists()) {
       Pesan('Username sudah terdaftar')
       loading.value = false
       return
     }
 
-    // Simpan pengguna baru ke Firebase RTDB
-    const newUserData = { username, password, role: 'user' }
+    const hashedPassword = await hashPassword(password) // gabungin username + password (salt manual)
+    const newUserData = {
+      username,
+      password: hashedPassword,
+      role: 'user',
+    }
+
     await set(userRef, newUserData)
 
-    // Tampilkan toast sukses dan arahkan pengguna ke halaman login
     Pesan('Registrasi berhasil! Silakan login')
     setTimeout(() => {
       router.push('/')

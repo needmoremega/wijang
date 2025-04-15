@@ -132,9 +132,6 @@ function handleBaca(book) {
         @kembalikan="konfirmasiKembalikan"
         @baca="handleBaca"
       />
-      <div v-if="!loading && pinjaman.length === 0" class="text-center text-gray-500 mt-6">
-        ❌ Tidak ada pinjaman aktif.
-      </div>
     </div>
 
     <div v-else-if="activeTab === 'bookmark'">

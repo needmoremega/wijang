@@ -35,7 +35,8 @@
             <th>Penulis</th>
             <th>Tanggal Terbit</th>
             <th>Kategori</th>
-            <th>Stock</th>
+            <th>views</th>
+            <th>direkomendasikan</th>
             <th>Cover</th>
             <th>Aksi</th>
           </tr>
@@ -46,7 +47,8 @@
             <td>{{ book.author }}</td>
             <td>{{ book.TanggalTerbit }}</td>
             <td>{{ book.kategori }}</td>
-            <td>{{ book.stock }}</td>
+            <td>{{ book.view }}</td>
+            <td>{{ book.rekomendasi }}</td>
             <td>
               <img
                 v-if="book.cover"
@@ -59,9 +61,9 @@
               <div class="flex gap-2">
                 <!-- Tombol Lihat -->
                 <button
-                  @click="viewBook(book)"
+                  @click="toggleRekomendasi(book.judul, book.kategori)"
                   class="btn btn-sm btn-outline btn-info tooltip"
-                  data-tip="Lihat"
+                  :data-tip="book.rekomendasi ? 'Batalkan Rekomendasi' : 'Jadikan Rekomendasi'"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -74,13 +76,7 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.95-.69l1.519-4.674z"
                     />
                   </svg>
                 </button>
@@ -109,7 +105,7 @@
 
                 <!-- Tombol Hapus -->
                 <button
-                  @click="deleteBook(book)"
+                  @click="deleteBook(book.judul, book.kategori)"
                   class="btn btn-sm btn-outline btn-error tooltip"
                   data-tip="Hapus"
                 >
@@ -156,73 +152,105 @@
     <!-- Modal Tambah/Edit Buku -->
     <div
       v-if="showModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-50"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-50 transition-opacity duration-300 ease-in-out"
     >
-      <div class="modal-box w-full max-w-3xl p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
-        <h3 class="font-bold text-xl mb-4 text-center">
+      <div
+        class="modal-box w-full max-w-3xl p-6 rounded-lg bg-gray-100 dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out scale-100"
+      >
+        <h3 class="font-bold text-xl mb-4 text-center text-gray-900 dark:text-gray-200">
           {{ editMode ? 'Edit Buku' : 'Tambah Buku' }}
         </h3>
         <form @submit.prevent="editMode ? updateBuku() : saveBook()" class="space-y-4">
+          <!-- Judul -->
           <div class="form-control">
-            <label class="label">Judul</label>
+            <label class="label text-gray-700 dark:text-gray-300">Judul</label>
             <input
               v-model="newBook.judul"
               type="text"
-              class="input input-bordered dark:bg-gray-700"
+              placeholder="Masukkan judul buku"
+              class="input input-bordered w-full dark:bg-gray-700 dark:text-gray-200"
+              required
             />
           </div>
+
+          <!-- Penulis -->
           <div class="form-control">
-            <label class="label">Penulis</label>
+            <label class="label text-gray-700 dark:text-gray-300">Penulis</label>
             <input
               v-model="newBook.author"
               type="text"
-              class="input input-bordered dark:bg-gray-700"
+              placeholder="Masukkan nama penulis"
+              class="input input-bordered w-full dark:bg-gray-700 dark:text-gray-200"
+              required
             />
           </div>
+
+          <!-- Kategori -->
           <div class="form-control">
-            <label class="label">Kategori</label>
+            <label class="label text-gray-700 dark:text-gray-300">Kategori</label>
             <input
               v-model="newBook.kategori"
               type="text"
-              class="input input-bordered dark:bg-gray-700"
+              placeholder="Masukkan kategori buku"
+              class="input input-bordered w-full dark:bg-gray-700 dark:text-gray-200"
+              required
             />
           </div>
+
+          <!-- Stock -->
           <div class="form-control">
-            <label class="label">Stock</label>
+            <label class="label text-gray-700 dark:text-gray-300">Stock</label>
             <input
               v-model.number="newBook.stock"
               type="number"
-              class="input input-bordered dark:bg-gray-700"
+              placeholder="Masukkan jumlah stock"
+              class="input input-bordered w-full dark:bg-gray-700 dark:text-gray-200"
+              required
             />
           </div>
+
+          <!-- Tanggal Terbit -->
           <div class="form-control">
-            <label class="label">Tanggal Terbit</label>
+            <label class="label text-gray-700 dark:text-gray-300">Tanggal Terbit</label>
             <input
               v-model="newBook.TanggalTerbit"
               type="date"
-              class="input input-bordered dark:bg-gray-700"
+              class="input input-bordered w-full dark:bg-gray-700 dark:text-gray-200"
+              required
             />
           </div>
+
+          <!-- Cover -->
           <div class="form-control">
-            <label class="label">Cover</label>
+            <label class="label text-gray-700 dark:text-gray-300">Cover</label>
             <input
               type="file"
               @change="captureCoverEvent"
-              class="file-input file-input-bordered dark:bg-gray-700"
+              class="file-input file-input-bordered w-full dark:bg-gray-700 dark:text-gray-200"
             />
           </div>
+
+          <!-- PDF -->
           <div class="form-control">
-            <label class="label">PDF</label>
+            <label class="label text-gray-700 dark:text-gray-300">PDF</label>
             <input
               type="file"
               @change="capturePdfEvent"
               accept="application/pdf"
-              class="file-input file-input-bordered dark:bg-gray-700"
+              class="file-input file-input-bordered w-full dark:bg-gray-700 dark:text-gray-200"
             />
           </div>
-          <div class="modal-action flex justify-between flex-col sm:flex-row gap-2">
-            <button type="button" class="btn btn-ghost" @click="closeModal">Batal</button>
-            <button type="submit" class="btn btn-primary">
+
+          <!-- Tombol Aksi -->
+          <div class="modal-action flex justify-between mt-4">
+            <button
+              type="button"
+              class="btn btn-outline hover:bg-gray-200 dark:hover:bg-gray-700"
+              @click="closeModal"
+            >
+              Batal
+            </button>
+            <button type="submit" class="btn btn-primary hover:bg-blue-600 dark:hover:bg-blue-700">
               {{ editMode ? 'Update' : 'Simpan' }}
             </button>
           </div>
@@ -231,15 +259,28 @@
     </div>
 
     <!-- Modal Konfirmasi -->
+    <!-- Modal Konfirmasi -->
     <div
       v-if="showConfirmModal"
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-50"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4 z-50 transition-opacity duration-300 ease-in-out"
     >
-      <div class="modal-box w-full max-w-md p-6 rounded-lg bg-gray-100 dark:bg-gray-800">
-        <p class="text-lg text-center">{{ confirmMessage }}</p>
+      <div
+        class="modal-box w-full max-w-md p-6 rounded-lg bg-gray-100 dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out scale-100"
+      >
+        <p class="text-lg text-center text-gray-900 dark:text-gray-200">{{ confirmMessage }}</p>
         <div class="modal-action flex justify-between mt-4">
-          <button class="btn" @click="closeConfirmModal">Batal</button>
-          <button class="btn btn-error" @click="executeConfirmAction">Ya</button>
+          <button
+            class="btn btn-outline hover:bg-gray-200 dark:hover:bg-gray-700"
+            @click="closeConfirmModal"
+          >
+            Batal
+          </button>
+          <button
+            class="btn btn-error hover:bg-red-600 dark:hover:bg-red-700"
+            @click="executeConfirmAction"
+          >
+            Ya
+          </button>
         </div>
       </div>
     </div>
@@ -283,6 +324,8 @@ const newBook = ref({
   stock: 0,
   cover: '',
   pdf: '',
+  view: 0,
+  rekomendasi: false,
   ketersediaan: true,
 })
 
@@ -349,6 +392,17 @@ const executeConfirmAction = () => {
 /* ---------------------------
    CRUD API Calls ke Express
 ---------------------------- */
+const toggleRekomendasi = async (judul, kategori) => {
+  try {
+    const url = `http://localhost:3001/buku/${kategori}/${encodeURIComponent(judul)}`
+    const res = await axios.put(url, { rekomendasi: !books.value.rekomendasi }) // Toggle nilai rekomendasi
+    showNotifikasi(res.data.message, 'alert-success')
+    fetchBooks() // Perbarui daftar buku setelah nilai rekomendasi diubah
+  } catch (error) {
+    console.error('Error toggling rekomendasi:', error)
+    showNotifikasi('Gagal mengubah status rekomendasi', 'alert-error')
+  }
+}
 const fetchBooks = async () => {
   try {
     isLoading.value = true
@@ -524,12 +578,6 @@ const saveBook = async () => {
     }
     newBook.value.ketersediaan = newBook.value.stock > 0
 
-    newBook.value.TanggalTerbit = new Date().toLocaleString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
-
     newBook.value.cover = coverUrl || ''
     newBook.value.pdf = pdfUrl || ''
 
@@ -586,11 +634,6 @@ const updateBuku = async () => {
 
   openConfirmModal('Apakah Anda yakin ingin memperbarui buku ini?', async () => {
     // Jika ada file PDF baru yang diupload, proses upload terlebih dahulu
-    newBook.value.TanggalTerbit = new Date().toLocaleString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    })
 
     let pdfUrl = newBook.value.pdf
     if (pdfEventData) {

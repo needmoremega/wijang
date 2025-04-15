@@ -1,7 +1,10 @@
 <template>
   <div class="w-full">
     <!-- Skeleton Loading -->
-    <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+    <div
+      v-if="loading"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 2xl:grid-cols-6"
+    >
       <div
         v-for="n in 6"
         :key="n"
@@ -47,20 +50,6 @@
             <p class="text-xs text-gray-400 mt-2 line-clamp-4 h-[64px]">
               {{ book.isiBuku.deskripsi || 'Deskripsi belum tersedia.' }}
             </p>
-          </div>
-
-          <!-- Badge Status -->
-          <div class="mt-2">
-            <span
-              class="badge badge-sm"
-              :class="{
-                'badge-success': book.status === 'aktif',
-                'badge-warning': book.status === 'jatuh tempo',
-                'badge-error': book.status === 'telat',
-              }"
-            >
-              {{ book.status || 'aktif' }}
-            </span>
           </div>
 
           <!-- Aksi -->

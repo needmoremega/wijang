@@ -1,9 +1,9 @@
 <template>
   <form
     @submit.prevent="login"
-    class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-md"
+    class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md w-full max-w-md mx-auto mt-10"
   >
-    <!-- Username Input -->
+    <!-- Username -->
     <div class="form-control my-2">
       <label
         class="input input-bordered flex items-center gap-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded"
@@ -18,7 +18,7 @@
       </label>
     </div>
 
-    <!-- Password Input -->
+    <!-- Password -->
     <div class="form-control my-1 relative">
       <label
         class="input input-bordered flex items-center gap-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded"
@@ -43,7 +43,8 @@
     <!-- Remember Me -->
     <div class="flex items-center justify-between my-2">
       <label class="flex items-center text-gray-900 dark:text-gray-200">
-        <input type="checkbox" v-model="rememberMe" class="mr-2" /> Remember Me
+        <input type="checkbox" v-model="rememberMe" class="mr-2" />
+        Remember Me
       </label>
     </div>
 
@@ -77,20 +78,20 @@
     </div>
   </form>
 
-  <!-- Error Toast (Top Center) -->
+  <!-- Error Toast -->
   <div v-if="showToast" class="toast fixed top-4 left-1/2 z-50" style="transform: translateX(-50%)">
-    <div class="alert alert-info toast-content">
+    <div class="alert alert-info toast-content bg-red-500 text-white">
       <span>{{ errorMessage }}</span>
     </div>
   </div>
 
-  <!-- Success Toast (Top Center) -->
+  <!-- Success Toast -->
   <div
     v-if="showSuccess"
     class="toast fixed top-4 left-1/2 z-50"
     style="transform: translateX(-50%)"
   >
-    <div class="alert alert-success toast-content">
+    <div class="alert alert-success toast-content bg-green-500 text-white">
       <span>{{ successMessage }}</span>
     </div>
   </div>
@@ -112,22 +113,25 @@ const errorMessage = ref('')
 const showSuccess = ref(false)
 const successMessage = ref('')
 
-// Fungsi untuk menampilkan toast error
-const showError = (message) => {
-  errorMessage.value = message
-  showToast.value = true
-  setTimeout(() => {
-    showToast.value = false
-  }, 3000)
+// Fungsi hash password dengan Web Crypto API
+async function hashPassword(input) {
+  const encoder = new TextEncoder()
+  const data = encoder.encode(input)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
-// Fungsi untuk menampilkan toast sukses
-const showSuccessToast = (message) => {
-  successMessage.value = message
+const showError = (msg) => {
+  errorMessage.value = msg
+  showToast.value = true
+  setTimeout(() => (showToast.value = false), 3000)
+}
+
+const showSuccessToast = (msg) => {
+  successMessage.value = msg
   showSuccess.value = true
-  setTimeout(() => {
-    showSuccess.value = false
-  }, 1500)
+  setTimeout(() => (showSuccess.value = false), 1500)
 }
 
 const togglePassword = () => {
@@ -135,37 +139,38 @@ const togglePassword = () => {
 }
 
 const login = async () => {
-  errorMessage.value = ''
-  loading.value = true
+  const { username, password } = isiLogin.value
 
-  if (!isiLogin.value.username || !isiLogin.value.password) {
+  if (!username || !password) {
     showError('Username dan password tidak boleh kosong')
-    loading.value = false
     return
   }
 
-  try {
-    const userRef = dbRef(database, `user/${isiLogin.value.username}`)
-    const userSnapshot = await get(userRef)
+  loading.value = true
 
-    if (!userSnapshot.exists()) {
+  try {
+    const userRef = dbRef(database, `user/${username}`)
+    const snapshot = await get(userRef)
+
+    if (!snapshot.exists()) {
       showError('Username atau password salah')
       return
     }
 
-    const userData = userSnapshot.val()
+    const userData = snapshot.val()
+    const hashedInput = await hashPassword(password)
 
-    if (userData.password === isiLogin.value.password) {
+    if (hashedInput === userData.password) {
       localStorage.setItem('user', JSON.stringify(userData))
-      showSuccessToast('Login berhasil, mengalihkan halaman...')
+      showSuccessToast('Login berhasil, mengalihkan...')
       setTimeout(() => {
         router.push('/')
       }, 1000)
     } else {
       showError('Username atau password salah')
     }
-  } catch (error) {
-    showError(error.message)
+  } catch (err) {
+    showError('Terjadi kesalahan: ' + err.message)
   } finally {
     loading.value = false
   }
@@ -178,13 +183,11 @@ const login = async () => {
     fadeIn 0.5s,
     fadeOut 0.5s 2.5s;
 }
-
 .toast-content {
   padding: 16px 20px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -195,7 +198,6 @@ const login = async () => {
     transform: translate(-50%, 0);
   }
 }
-
 @keyframes fadeOut {
   from {
     opacity: 1;

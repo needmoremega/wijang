@@ -1,5 +1,12 @@
 <template>
-  <router-view />
+  <RouterView />
+  <ToastCompo ref="toastRef" />
 </template>
 
-<script setup></script>
+<script setup>
+import { ref, provide } from 'vue'
+import ToastCompo from './components/universal/toastCompo.vue'
+
+const toastRef = ref()
+provide('toast', toastRef)
+</script>

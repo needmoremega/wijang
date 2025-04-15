@@ -265,6 +265,8 @@ app.post('/books', async (req, res) => {
       TanggalTerbit,
       kategori,
       stock,
+      view: 0,
+      rekomendasi: false,
       ketersediaan: stock > 0,
       cover: cover || '',
       pdf: pdf || '',
@@ -279,25 +281,47 @@ app.post('/books', async (req, res) => {
   }
 })
 
-// Update buku
 app.put('/books/:kategori/:id', async (req, res) => {
   try {
+    // Destructuring parameter dari URL dan body request
     const { kategori, id } = req.params
     const { judul, author, TanggalTerbit, stock, cover, pdf } = req.body
 
+    // Validasi input
+    if (!kategori || !id) {
+      return res.status(400).json({ message: 'Kategori dan ID harus disertakan.' })
+    }
+    if (!judul || !author || !TanggalTerbit || stock === undefined) {
+      return res
+        .status(400)
+        .json({ message: 'Judul, author, tanggal terbit, dan stock wajib diisi.' })
+    }
+    if (typeof stock !== 'number' || stock < 0) {
+      return res.status(400).json({ message: 'Stock harus berupa angka positif.' })
+    }
+
+    // Referensi ke database Firebase
     const bookRef = database.ref(`kategori/${kategori}/${id}`)
-    await bookRef.update({
+
+    // Data yang akan diperbarui
+    const updatedData = {
       judul,
       author,
       TanggalTerbit,
       stock,
-      ketersediaan: stock > 0,
-      cover: cover || '',
-      pdf: pdf || '',
-    })
+      ketersediaan: stock > 0, // Menghitung ketersediaan berdasarkan stock
+      cover: cover || '', // Jika cover tidak diberikan, tetapkan sebagai string kosong
+      pdf: pdf || '', // Jika pdf tidak diberikan, tetapkan sebagai string kosong
+    }
 
-    res.json({ message: 'Buku berhasil diperbarui.' })
+    // Memperbarui data di Firebase
+    await bookRef.update(updatedData)
+
+    // Mengembalikan respons sukses
+    res.json({ message: 'Buku berhasil diperbarui.', updatedData })
   } catch (error) {
+    // Menangani kesalahan
+    console.error('Error updating book:', error)
     res.status(500).json({
       message: 'Gagal memperbarui buku.',
       error: error.message,
@@ -306,41 +330,59 @@ app.put('/books/:kategori/:id', async (req, res) => {
 })
 
 // Hapus buku
-
-app.delete('/books/:kategori/:id', async (req, res) => {
+app.delete(`/books/:kategori/:id`, async (req, res) => {
   try {
     const { kategori, id } = req.params
+    console.log(`👉 Permintaan hapus buku: kategori = ${kategori}, id = ${id}`)
 
-    // 1. Ambil data buku untuk tahu lokasi file PDF dan cover
-    const bookSnapshot = await database.ref(`kategori/${kategori}/${id}`).once('value')
+    // 1. Ambil data buku
+    const bookRef = database.ref(`kategori/${kategori}/${id}`)
+    const bookSnapshot = await bookRef.once('value')
     const bookData = bookSnapshot.val()
 
     if (!bookData) {
+      console.warn('❌ Buku tidak ditemukan di database.')
       return res.status(404).json({ message: 'Buku tidak ditemukan.' })
     }
-    const folderName = `pdf-images/${bookData.judul}/`
+
+    console.log('✅ Data buku ditemukan:', bookData)
+
+    // 2. Hapus semua file di folder pdf-images/<judul>
+    const encodedJudul = encodeURIComponent(bookData.judul)
+    const folderName = `pdf-images/${encodedJudul}/`
+    console.log(`📂 Menghapus file dari folder: ${folderName}`)
+
     const [files] = await bucket.getFiles({ prefix: folderName })
+    console.log(`📄 Ditemukan ${files.length} file di folder.`)
 
     for (const file of files) {
-      await file.delete().catch((err) => {
-        console.warn(`Gagal hapus ${file.name}:`, err.message)
-      })
-    }
-    // Hapus PDF jika ada
-    if (bookData.pdf) {
-      await bucket
-        .file(bookData.pdf)
-        .delete()
-        .catch((err) => {
-          console.warn('Gagal hapus PDF:', err.message)
-        })
+      try {
+        await file.delete()
+        console.log(`🗑️ Berhasil hapus file: ${file.name}`)
+      } catch (err) {
+        console.warn(`⚠️ Gagal hapus file ${file.name}:`, err.message)
+      }
     }
 
-    // 3. Hapus data dari Realtime Database
-    await database.ref(`kategori/${kategori}/${id}`).remove()
+    // 3. Hapus PDF utama jika ada
+    if (bookData.pdf) {
+      console.log('📄 Mencoba hapus file PDF:', bookData.pdf)
+      try {
+        await bucket.file(bookData.pdf).delete()
+        console.log('🗑️ File PDF berhasil dihapus.')
+      } catch (err) {
+        console.warn('⚠️ Gagal hapus PDF:', err.message)
+      }
+    }
+
+    // 4. Hapus data dari Firebase Realtime Database
+    console.log('🗂️ Menghapus data dari database...')
+    await bookRef.remove()
+    console.log('✅ Data di database berhasil dihapus.')
 
     res.json({ message: 'Buku berhasil dihapus beserta file di Storage.' })
   } catch (error) {
+    console.error('💥 Error saat menghapus buku:', error.message)
     res.status(500).json({
       message: 'Gagal menghapus buku.',
       error: error.message,
@@ -348,4 +390,21 @@ app.delete('/books/:kategori/:id', async (req, res) => {
   }
 })
 
+// rekomendasi
+app.put('/buku/:kategori/:id', async (req, res) => {
+  try {
+    const { kategori, id } = req.params
+    const { rekomendasi } = req.body
+
+    const bookRef = database.ref(`kategori/${kategori}/${id}`)
+    await bookRef.update({ rekomendasi })
+
+    res.json({ message: 'Status rekomendasi berhasil diperbarui.' })
+  } catch (error) {
+    res.status(500).json({
+      message: 'Gagal memperbarui status rekomendasi.',
+      error: error.message,
+    })
+  }
+})
 app.listen(3001, () => console.log('🚀 Backend running on http://localhost:3001'))

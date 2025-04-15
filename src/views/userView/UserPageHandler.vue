@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col min-h-screen w-full">
-    <NavbarUser :userRole="userRole" class="z-20" />
+    <NavbarUser :profile="profile" :userRole="userRole" class="z-20" />
     <main class="flex-grow w-full px-4 sm:px-6 md:px-8">
       <RouterView :userId="userId" v-if="!loading" />
       <div v-else class="flex justify-center items-center h-screen">
@@ -12,30 +12,42 @@
 </template>
 
 <script setup>
-import FotterUser from '@/components/user/FotterUser.vue'
-import NavbarUser from '@/components/user/NavbarUser.vue'
 import { ref, onMounted } from 'vue'
 import { database } from '@/firebase'
 import { ref as dbRef, get } from 'firebase/database'
+import FotterUser from '@/components/user/FotterUser.vue'
+import NavbarUser from '@/components/user/NavbarUser.vue'
 
-// State untuk menyimpan role user dan loading state
+// State for user role, loading state, profile, and userId
 const userRole = ref(null)
 const loading = ref(true)
+const profile = ref(null)
 
-// Ambil user ID dari localStorage dengan pengecekan null
+// Get user data from localStorage with null check and fallback value
 const userData = JSON.parse(localStorage.getItem('user')) || {}
 const userId = userData.username || null
 
+// Fetch profile and role on component mount
 onMounted(async () => {
   if (userId) {
     try {
+      // Fetch user profile data
+      const profileRef = dbRef(database, `user/${userId}/profile`)
+      const snapshotprofile = await get(profileRef)
+      if (snapshotprofile.exists()) {
+        profile.value = snapshotprofile.val()
+      } else {
+        console.log('No profile data available')
+      }
+
+      // Fetch user role data
       const roleRef = dbRef(database, `user/${userId}/role`)
       const snapshot = await get(roleRef)
       if (snapshot.exists()) {
         userRole.value = snapshot.val()
       }
     } catch (error) {
-      console.error('Error fetching role:', error)
+      console.error('Error fetching profile or role:', error)
     }
   }
   loading.value = false

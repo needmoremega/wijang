@@ -12,11 +12,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
   // 404 not found path
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: ErorPage }, // ⛔ Route 404
-  {
-    path: '/profile',
-    name: 'Profile',
-    component: () => import('@/views/userView/ProfilePage.vue'),
-  },
+
   {
     // common non non
     path: '/',
@@ -39,6 +35,11 @@ const routes = [
         path: '/pustaka',
         name: 'Pustaka',
         component: () => import('@/views/userView/PustakaUser.vue'),
+      },
+      {
+        path: '/profile',
+        name: 'Profile',
+        component: () => import('@/views/userView/ProfilePage.vue'),
       },
     ],
   },
@@ -66,7 +67,7 @@ const routes = [
       { path: '/admin', component: AdminDashboard },
       { path: 'dashboard', component: AdminDashboard },
       { path: 'buku', name: 'buku', component: AdminBuku },
-      { path: 'user', name: 'user', component: AdminUser },
+      { path: 'pinjaman', name: 'user', component: AdminUser },
     ],
   },
 ]

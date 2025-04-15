@@ -31,7 +31,9 @@
             />
           </svg>
         </RouterLink>
-        <h1 class="text-xl font-bold text-center flex-1">Wijang Admin</h1>
+        <h1 class="text-xl font-bold text-center flex-1">
+          <img src="/public/PeronRiduNavFot.png" alt="" />
+        </h1>
       </div>
 
       <!-- Menu List -->
@@ -59,6 +61,6 @@ defineProps({
 const Menu = [
   { name: 'Dashboard', path: '/admin/dashboard' },
   { name: 'Buku', path: '/admin/buku' },
-  { name: 'User', path: '/admin/user' },
+  { name: 'Pinjaman', path: '/admin/pinjaman' },
 ]
 </script>

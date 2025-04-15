@@ -19,7 +19,9 @@
           />
         </svg>
       </button>
-      <a href="#" class="text-xl font-bold text-primary">Nama Website</a>
+      <a href="#" class="w-72"
+        ><img src="/public/PeronRiduNavFot.png" alt="peronRidu" class="object- h-16 w-48"
+      /></a>
     </div>
 
     <!-- Menu utama -->
@@ -68,7 +70,7 @@
     </div>
 
     <div class="navbar-end flex gap-6 w-auto">
-      <button class="btn btn-ghost btn-circle" @click="isSearchOpen = true">
+      <button class="btn btn-ghost btn-circle invisible" @click="isSearchOpen = true">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-6 w-6"
@@ -91,10 +93,7 @@
           class="btn btn-ghost btn-circle avatar hover:bg-gray-200 transition"
         >
           <div class="w-10 rounded-full border border-gray-300">
-            <img
-              alt="Profile Picture"
-              src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-            />
+            <img alt="Profile Picture" :src="profile" />
           </div>
         </div>
         <ul
@@ -137,6 +136,7 @@ import { useRouter } from 'vue-router'
 
 defineProps({
   userRole: String,
+  profile: String,
 })
 
 const router = useRouter()

@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full mt-2">
+  <div class="mt-2">
     <swiper
       :modules="[Navigation, Pagination, Autoplay]"
       :slides-per-view="1"

@@ -1,6 +1,7 @@
 <template>
   <footer class="footer footer-center bg-base-300 text-base-content rounded">
     <div class="flex flex-col mt-5">
+      <img class="w-72 h-24" src="/public/PeronRiduNavFot.png" alt="" />
       <a
         href="https://github.com/needmoremega/wijang/issues/new?template=Blank+issue"
         class="link link-hover"
