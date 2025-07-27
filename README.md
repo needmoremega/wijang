@@ -32,7 +32,7 @@
 
 ## Project Structure
 
-```bash
+```
 wijang/
 ├── backend/                 # Express.js backend
 │   ├── routes/             # API routes: books, upload, convert
@@ -46,33 +46,28 @@ wijang/
 │   │   ├── router/         # Vue Router configuration
 │   │   └── App.vue, main.js
 ├── README.md
-
-
+```
 Installation & Running the Project
 1. Clone the Repository
-bash
-Copy
-Edit
+```clone repo
 git clone https://github.com/needmoremega/wijang.git
 cd wijang
-2. Run Backend (Express.js)
-bash
-Copy
-Edit
+```
+3. Run Backend (Express.js)
+```run backend
 cd backend
 npm install
 npm run dev
+```
 If needed, create a .env file with your Firebase credentials:
-
-env
-Copy
-Edit
+```env
 FIREBASE_DATABASE_URL=your_firebase_database_url
 FIREBASE_PROJECT_ID=your_project_id
+```
 3. Run Frontend (Vue 3)
-bash
-Copy
-Edit
+```
 cd frontend
 npm install
 npm run dev
+```
+
